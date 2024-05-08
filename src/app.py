@@ -29,8 +29,13 @@ def authors_details(author_id: str):
 
 @app.route('/search-authors', methods=['GET'])
 def search_authors():
-    query = request.args.get('query', '')  # Get the search term from the query parameter
-    authors = author.filterByName(query)
+    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
+    
+    if query != "":
+        authors = author.filterByName(query)
+    else:
+        authors = author.list_all()    
+
     return render_template('authors/authors_list.html', authors=authors)
 
 ########

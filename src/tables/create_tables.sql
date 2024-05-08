@@ -125,7 +125,7 @@ CREATE TABLE Read_by (
 CREATE TABLE Author (
     AuthorID            VARCHAR(10)     NOT NULL,
     [Name]             NVARCHAR(50)     NOT NULL,
-    Email               VARCHAR(320), -- var cha
+    [Url]               VARCHAR(50),
     ORCID               VARCHAR(19),
     InstitutionID       VARCHAR(10),
     PRIMARY KEY (AuthorID),

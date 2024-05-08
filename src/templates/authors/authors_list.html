@@ -2,10 +2,10 @@
     <div class="card alig-center mt-3"> 
         <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
             <div class="contact-list-item-details" hx-get="/authors/{{ author.AuthorID }}">
-                <div class="contact-name">Name: <strong>{{ author.Name }}</strong></div>
-                <div class="company-name">Email: {{ author.Email }}</div>
-                <div class="company-name">ORCID: {{ author.ORCID }}</div>
-                <div class="company-name">Institution: {{ author.InstitutionID }}</div>
+                <div>Name: <strong>{{ author.Name }}</strong></div>
+                <div><a class="link-primary link-underline-dark" href="{{ author.Url }}">website</a></div>
+                <div>ORCID: {{ author.ORCID }}</div>
+                <div>Institution: {{ author.InstitutionID }}</div>
             </div>
         </div>
     </div>   

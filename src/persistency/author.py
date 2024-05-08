@@ -27,7 +27,7 @@ def read(c_id: str):
         return Author(
             row.AuthorID or "Not found",
             row.Name or "Not found",
-            row.Email or "Not found",
+            row.Url or "Not found",
             row.ORCID or "Not found",
             row.InstitutionID or "Not found",
         )
@@ -41,7 +41,7 @@ def list_all():
         return [Author(
             row.AuthorID or "Not found",
             row.Name or "Not found",
-            row.Email or "Not found",
+            row.Url or "Not found",
             row.ORCID or "Not found",
             row.InstitutionID or "Not found",
         ) for row in rows]
@@ -58,7 +58,7 @@ def filterByName(name: str):
         return [Author(
             row.AuthorID or "Not found",
             row.Name or "Not found",
-            row.Email or "Not found",
+            row.Url or "Not found",
             row.ORCID or "Not found",
             row.InstitutionID or "Not found",
         ) for row in rows]

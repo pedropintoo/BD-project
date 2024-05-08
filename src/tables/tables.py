@@ -24,7 +24,7 @@ tables =  [
 class Author(NamedTuple):
     AuthorID: str
     Name: str
-    Email: str
+    Url: str
     ORCID: str
     InstitutionID: str
 

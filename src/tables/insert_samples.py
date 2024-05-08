@@ -9,19 +9,6 @@ from persistency.session import create_connection
 from tables import *
 from full_data.download import get_fullData_links
 
-def getNextInstitutionID():
-    with create_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT MAX(InstitutionID) FROM Institution")
-        result = cursor.fetchone()
-        return int(result[0]) + 1 if result[0] else 1
-
-def getNextTopicID():
-    with create_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT MAX(TopicID) FROM Topic")
-        result = cursor.fetchone()
-        return int(result[0]) + 1 if result[0] else 1
 
 def insert_author(author: Author):
     with create_connection() as conn:
@@ -31,7 +18,7 @@ def insert_author(author: Author):
                 "INSERT INTO Author VALUES (?, ?, ?, ?, ?)",
                 author.AuthorID,
                 author.Name,
-                author.Email,
+                author.Url,
                 author.ORCID,
                 author.InstitutionID)
             cursor.commit()
@@ -74,7 +61,7 @@ def insert_authors_and_institutions(buffer):
         if institution_name:
             # Create Institution object
             institution = Institution(
-                InstitutionID = getNextInstitutionID(),
+                InstitutionID = abs(hash(institution_name)) % (10 ** 10),
                 Name = institution_name,
                 Address = None
                 )
@@ -87,7 +74,7 @@ def insert_authors_and_institutions(buffer):
         author = Author(
             AuthorID = author_data["authorid"],
             Name = author_data["name"],
-            Email = None,
+            Url = author_data["url"],
             ORCID = author_data["externalids"].get("ORCID", None) if author_data["externalids"] else None,
             InstitutionID = institution.InstitutionID if institution_name else None
             )
@@ -138,74 +125,74 @@ def insert_topic(topic: Topic):
         except Exception as e:
             print("Error...", topic, e)
 
-def insert_articles_and_topics(buffer):
-    # Read data from the file into a list of dictionaries
-    for line in buffer:
-        # Correct the source data errors
-        cleaned_line = line.replace('\n', '').replace('\\n', '').strip()
+# def insert_articles_and_topics(buffer):
+#     # Read data from the file into a list of dictionaries
+#     for line in buffer:
+#         # Correct the source data errors
+#         cleaned_line = line.replace('\n', '').replace('\\n', '').strip()
 
-        # Load each line as JSON
-        article_data = json.loads(cleaned_line)
+#         # Load each line as JSON
+#         article_data = json.loads(cleaned_line)
     
-        for item in article_data["s2fieldsofstudy"]:
-            topic_name = item["category"]    
-            # Create Topic object
-            topic = Topic(
-                TopicID = getNextTopicID(),
-                Name = topic_name,
-                Description = None
-            )
+#         for item in article_data["s2fieldsofstudy"]:
+#             topic_name = item["category"]    
+#             # Create Topic object
+#             topic = Topic(
+#                 TopicID = hash(topic_name),
+#                 Name = topic_name,
+#                 Description = None
+#             )
 
-            # Insert topic data
-            insert_topic(topic)
+#             # Insert topic data
+#             insert_topic(topic)
 
-        journal_info = article_data["journal"]
-        startPage = endPage = 0
-        pages = journal_info["pages"]
-        volume = journal_info["volume"]
-        journalName = journal_info["name"]
+#         journal_info = article_data["journal"]
+#         startPage = endPage = 0
+#         pages = journal_info["pages"]
+#         volume = journal_info["volume"]
+#         journalName = journal_info["name"]
         
-        # Check if the data format is correct
-        if pages and isinstance(pages, str) and '-' in pages:
-            # Clean up whitespace and line breaks
-            pages = pages.strip()
+#         # Check if the data format is correct
+#         if pages and isinstance(pages, str) and '-' in pages:
+#             # Clean up whitespace and line breaks
+#             pages = pages.strip()
             
-            # Check if the format is 'Number1-Number2' after cleaning
-            if pages.count('-') == 1 and all(part.isdigit() for part in pages.split('-')):
-                startPage, endPage = map(int, pages.split('-'))
+#             # Check if the format is 'Number1-Number2' after cleaning
+#             if pages.count('-') == 1 and all(part.isdigit() for part in pages.split('-')):
+#                 startPage, endPage = map(int, pages.split('-'))
     
-        if volume and isinstance(volume, str) and volume.isdigit():
-            volume = int(volume)
-        else:
-            volume = 0
+#         if volume and isinstance(volume, str) and volume.isdigit():
+#             volume = int(volume)
+#         else:
+#             volume = 0
         
-        # Create Article object
-        article = Article(
-            ArticleID = article_data["corpusid"],
-            Title = article_data["title"],
-            Abstract = ??,
-            DOI = article_data["DOI"],
-            StartPage = startPage,
-            EndPage = endPage,
-            JournalID = ??,
-            Volume = volume
-            )
+#         # Create Article object
+#         article = Article(
+#             ArticleID = article_data["corpusid"],
+#             Title = article_data["title"],
+#             Abstract = ??,
+#             DOI = article_data["DOI"],
+#             StartPage = startPage,
+#             EndPage = endPage,
+#             JournalID = ??,
+#             Volume = volume
+#             )
 
-        # Insert article data
-        insert_article(article)
+#         # Insert article data
+#         insert_article(article)
 
 
 if __name__ == '__main__':
-    # # Authors + Institutions
-    # file_path = "tables\\sample-data\\authors\\authors_sample.jsonl"
-    # buffer = open(file_path, "r", encoding="utf-8").readlines()
-    # insert_authors_and_institutions(buffer)
+    # Authors + Institutions
+    file_path = "tables\\sample-data\\authors\\authors-sample.jsonl"
+    buffer = open(file_path, "r", encoding="utf-8").readlines()
+    insert_authors_and_institutions(buffer)
 
-    buffer = gzip.open("tables\\full_data\\author0.jsonl.gz", "r").readlines()
-    print("buffer length: ", len(buffer))
-    for i in range(0, len(buffer), 100):
-        insert_authors_and_institutions(buffer[i:i+100])
-        print("inserted [", i, ":", i+100, "].")
+    # buffer = gzip.open("tables\\full_data\\author0.jsonl.gz", "r").readlines()
+    # print("buffer length: ", len(buffer))
+    # for i in range(0, len(buffer), 100):
+    #     insert_authors_and_institutions(buffer[i:i+100])
+    #     print("inserted [", i, ":", i+100, "].")
 
     # buffer = open(file_path, "r", encoding="utf-8").readlines()
     # insert_authors_and_institutions(buffer)
