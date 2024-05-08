@@ -130,8 +130,6 @@ CREATE TABLE Author (
     InstitutionID       VARCHAR(10),
     PRIMARY KEY (AuthorID),
     FOREIGN KEY (InstitutionID) REFERENCES Institution(InstitutionID),
-    --UNIQUE (Email), -- NOT WORKING WITH MULTIPLE NULLS
-    --UNIQUE (ORCID)
 );
 
 CREATE TABLE Wrote_by (
