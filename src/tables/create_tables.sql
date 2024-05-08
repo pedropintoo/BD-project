@@ -14,9 +14,9 @@ CREATE TABLE Journal(
     Frequency           VARCHAR(20),
     Publisher           VARCHAR(50),
     PRIMARY KEY (JournalID),
-    UNIQUE ([Name], Publisher),
-    UNIQUE (PrintISSN),
-    UNIQUE (EletronicISSN)
+    --UNIQUE ([Name], Publisher),
+    --UNIQUE (PrintISSN),
+    --UNIQUE (EletronicISSN)
 );
 
 CREATE TABLE Belongs_to(
@@ -46,8 +46,8 @@ CREATE TABLE Article(
     Volume              INT             NOT NULL,
     PRIMARY KEY (ArticleID),
     FOREIGN KEY (JournalID,Volume) REFERENCES JournalVolume(JournalID,Volume),
-    UNIQUE (DOI),
-    UNIQUE (JournalID, Volume, StartPage, EndPage)
+    --UNIQUE (DOI),
+    --UNIQUE (JournalID, Volume, StartPage, EndPage)
 );
 
 CREATE TABLE Cited_by(

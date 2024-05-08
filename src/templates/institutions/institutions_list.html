@@ -1,0 +1,10 @@
+{% for institution in institutions %}
+    <div class="card alig-center mt-3"> 
+        <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
+            <div class="contact-list-item-details" hx-get="/institutions/{{ institution.InstitutionID }}">
+                <div>Name: <strong>{{ institution.Name }}</strong></div>
+                <div>ORCID: {{ institution.Address }}</div>
+            </div>
+        </div>
+    </div>   
+{% endfor %}

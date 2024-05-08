@@ -1,6 +1,6 @@
 from flask import Flask, make_response, render_template, render_template_string, request
 
-from persistency import author
+from persistency import author, institution
 
 app = Flask(__name__)
 
@@ -37,6 +37,36 @@ def search_authors():
         authors = author.list_all()    
 
     return render_template('authors/authors_list.html', authors=authors)
+
+########
+
+## Institutions
+
+@app.route("/institutions")
+def institutions():
+    list_institutions = institution.list_all()
+    return render_template("institutions/institutions.html", institutions=list_institutions)
+
+@app.route("/institutions-list", methods=["GET"])
+def institutions_list():
+    institutions = institution.list_all()
+    return render_template("institutions/institutions_list.html", institutions=institutions)
+
+@app.route("/institutions/<institution_id>", methods=["GET"])
+def institutions_details(institution_id: str):
+    institution = institution.read(institution_id)
+    return render_template("institutions/institution_details_view.html", institution=institution)
+
+@app.route('/search-institutions', methods=['GET'])
+def search_institutions():
+    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
+    
+    if query != "":
+        institutions = institution.filterByName(query)
+    else:
+        institutions = institution.list_all()    
+
+    return render_template('institutions/institutions_list.html', institutions=institutions)
 
 ########
 

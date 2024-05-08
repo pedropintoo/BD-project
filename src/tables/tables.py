@@ -47,3 +47,16 @@ class Article(NamedTuple):
     EndPage: int
     JournalID: str
     Volume: int    
+
+class Journal(NamedTuple):
+    JournalID: str
+    Name: str
+    PrintISSN: str
+    EletronicISSN: str
+    Frequency: int
+    Publisher: int  
+
+class JournalVolume(NamedTuple):
+    JournalID: str
+    Volume: str  
+    PublicationDate: str   
