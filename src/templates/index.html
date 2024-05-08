@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcademiQuest</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" src="index.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-column">
+            <div class="contact-list" hx-get="/authors-list" hx-trigger="refreshAuthorList from:body">
+                {% include "authors_list.html" %}
+            </div>
+        </div>
+        <div id="content" class="right-column"></div>
+    </div>
+</body>
+</html>

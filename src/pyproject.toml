@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "src"
+version = "0.1.0"
+description = "Base de Dados - final project"
+authors = ["Pedro Pinto <pmap@ua.pt>", "Joao Pinto <jpapinto@ua.pt>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+Flask = "^3.0.2"
+pyodbc = "^5.1.0"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+

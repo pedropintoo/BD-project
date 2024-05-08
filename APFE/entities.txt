@@ -1,0 +1,24 @@
+1. Article:
+ - Attributes: ArticleID (PK), Title, Abstract, PublicationDate, DOI, ResearchScore
+
+2. Keyword:
+ - Attributes: KeywordName (PK)
+
+2. Author:
+ - Attributes: AuthorID (PK), Name, Email, ORCID, InstitutionID (FK)
+
+3. User:
+ - Attributes: UserID (PK), Name, Email, Password, InstitutionID (FK)
+
+4. Institution:
+ - Attributes: InstitutionID (PK), Name, Address
+
+4. Topic:
+ - Attributes: TopicID (PK), Name, Description 
+
+5. Journal:
+ - Attributes: JournalID (PK), Name, ISSN, Publisher, Frequency
+
+6. JournalVersion:
+ - Attributes: Version (PK), PublicationDate
+
