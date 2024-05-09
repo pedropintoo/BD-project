@@ -1,0 +1,12 @@
+{% for author in authors %}
+    <div class="card alig-center mt-3"> 
+        <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
+            <div class="contact-list-item-details" hx-get="/authors/{{ author.AuthorID }}">
+                <div>Name: <strong>{{ author.Name }}</strong></div>
+                <div><a class="link-primary link-underline-dark" href="{{ author.Url }}">website</a></div>
+                <div>ORCID: {{ author.ORCID }}</div>
+                <div>Institution: {{ author.InstitutionID }}</div>
+            </div>
+        </div>
+    </div>   
+{% endfor %}
