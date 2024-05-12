@@ -131,7 +131,7 @@ def insert_topic(topic: Topic):
                 topic.Description)
             cursor.commit()
         except pyodbc.IntegrityError as e:
-            print("Topic integrity error.", e)
+            print("Topic integrity error. Cannot insert duplicate", e)
         except pyodbc.ProgrammingError as e:
             print("Topic creation error.", e)
         except pyodbc.DataError as e:
@@ -202,6 +202,7 @@ def insert_articles_and_topics_and_journals(buffer):
         # Load each line as JSON
         article_data = json.loads(line)
         
+        # We only insert papers who has a topic
         if article_data["s2fieldsofstudy"] is None:
             continue
 
@@ -288,13 +289,15 @@ if __name__ == '__main__':
     # insert_authors_and_institutions(buffer)
 
     # Journals
-    file_path2 = "tables\\sample-data\\publication-venues\\publication-venues-sample.jsonl"
-    buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
-    insert_journals(buffer2)
+    # file_path2 = "tables\\sample-data\\publication-venues\\publication-venues-sample.jsonl"
+    # buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
+    # insert_journals(buffer2)
 
-    # Articles + Topics + Journals
-    # file_path1 = "tables\\sample-data\\papers\\papers-sample.jsonl"
-    # buffer1 = open(file_path1, "r", encoding="utf-8").readlines()
+    # Articles + Topics + JournalVolume
+    file_path2 = "tables\\sample-data\\papers\\papers-sample.jsonl"
+    buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
+    insert_articles_and_topics_and_journals(buffer2)
+
     # # miss file publication-venues
     # insert_articles_and_topics_and_journals(buffer1)
 

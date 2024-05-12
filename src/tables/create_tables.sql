@@ -8,7 +8,7 @@ CREATE TABLE Topic(
 
 CREATE TABLE Journal(
     JournalID           VARCHAR(40)     NOT NULL,
-    [Name]              VARCHAR(100)    NOT NULL,
+    [Name]              VARCHAR(100),
     PrintISSN           VARCHAR(9),
     EletronicISSN       VARCHAR(9),
     [Url]               VARCHAR(100),
