@@ -7,11 +7,11 @@ CREATE TABLE Topic(
 );
 
 CREATE TABLE Journal(
-    JournalID           VARCHAR(100)     NOT NULL,
+    JournalID           VARCHAR(40)     NOT NULL,
     [Name]              VARCHAR(100)    NOT NULL,
     PrintISSN           VARCHAR(9),
     EletronicISSN       VARCHAR(9),
-    [Url]               VARCHAR(50),
+    [Url]               VARCHAR(100),
     Publisher           VARCHAR(50),
     PRIMARY KEY (JournalID),
     --UNIQUE ([Name], Publisher),
@@ -21,14 +21,14 @@ CREATE TABLE Journal(
 
 CREATE TABLE Belongs_to(
     TopicID             VARCHAR(10)     NOT NULL,
-    JournalID           VARCHAR(10)     NOT NULL,
+    JournalID           VARCHAR(40)     NOT NULL,
     PRIMARY KEY (TopicID,JournalID),
     FOREIGN KEY (TopicID) REFERENCES Topic(TopicID),
     FOREIGN KEY (JournalID) REFERENCES Journal(JournalID)
 );
 
 CREATE TABLE JournalVolume(
-    JournalID           VARCHAR(10)     NOT NULL,
+    JournalID           VARCHAR(40)     NOT NULL,
     Volume              INT             NOT NULL,
     PublicationDate     DATE,
     PRIMARY KEY (JournalID,Volume),
@@ -42,7 +42,7 @@ CREATE TABLE Article(
     DOI                 VARCHAR(50)     NOT NULL,
     StartPage           INT,
     EndPage             INT,
-    JournalID           VARCHAR(10)     NOT NULL,
+    JournalID           VARCHAR(40)     NOT NULL,
     Volume              INT             NOT NULL,
     PRIMARY KEY (ArticleID),
     FOREIGN KEY (JournalID,Volume) REFERENCES JournalVolume(JournalID,Volume),
@@ -91,7 +91,7 @@ CREATE TABLE [User] (
 );
 
 CREATE TABLE Favorite_Journal (
-    JournalID           VARCHAR(10)     NOT NULL,
+    JournalID           VARCHAR(40)     NOT NULL,
     UserID              VARCHAR(10)     NOT NULL,
     PRIMARY KEY (JournalID,UserID),
     FOREIGN KEY (JournalID) REFERENCES Journal(JournalID),
@@ -125,7 +125,7 @@ CREATE TABLE Read_by (
 CREATE TABLE Author (
     AuthorID            VARCHAR(10)     NOT NULL,
     [Name]             NVARCHAR(50)     NOT NULL,
-    [Url]               VARCHAR(50),
+    [Url]               VARCHAR(100),
     ORCID               VARCHAR(19),
     InstitutionID       VARCHAR(10),
     PRIMARY KEY (AuthorID),

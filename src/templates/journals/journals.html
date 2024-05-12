@@ -7,7 +7,6 @@
     <title>AcademiQuest</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css">
-    <link rel="stylesheet" src="index.css">
 </head>
 <body>
     <div class="container">
@@ -20,7 +19,7 @@
               <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                   <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/authors">Authors</a>
+                    <a class="nav-link" aria-current="page" href="/authors">Authors</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" href="/institutions">Institutions</a>
@@ -32,12 +31,20 @@
                     <a class="nav-link" href="/topics">Topics</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="/journals">Journals</a>
+                    <a class="nav-link active" href="/journals">Journals</a>
                   </li>
                 </ul>
               </div>
             </div>
         </nav>
+        <form class="d-flex col-6 mt-2" method="get" hx-get="/search-journals" hx-trigger="submit" hx-target=".journals-list">
+          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="query">
+          <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+      
+        <div class="journals-list alig-center w-50" hx-get="/journals-list" hx-trigger="refreshAuthorList from:body">
+            {% include "journals/journals_list.html" %}
+        </div>
     </div>
 </body>
 </html>

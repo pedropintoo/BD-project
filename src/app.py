@@ -1,6 +1,6 @@
 from flask import Flask, make_response, render_template, render_template_string, request
 
-from persistency import author, institution, article, topic
+from persistency import author, institution, article, topic, journal
 
 app = Flask(__name__)
 
@@ -127,6 +127,36 @@ def search_topics():
         topics = topic.list_all()    
 
     return render_template('topics/topics_list.html', topics=topics)
+
+########
+
+## Journals
+
+@app.route("/journals")
+def journals():
+    list_journals = journal.list_all()
+    return render_template("journals/journals.html", journals=list_journals)
+
+@app.route("/journals-list", methods=["GET"])
+def journals_list():
+    journals = journal.list_all()
+    return render_template("journals/journals_list.html", journals=journals)
+
+@app.route("/journals/<journal_id>", methods=["GET"])
+def journals_details(journal_id: str):
+    journal = journal.read(journal_id)
+    return render_template("journals/journal_details_view.html", journal=journal)
+
+@app.route('/search-journals', methods=['GET'])
+def search_journals():
+    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
+    
+    if query != "":
+        journals = journal.filterByName(query)
+    else:
+        journals = journal.list_all()    
+
+    return render_template('journals/journals_list.html', journals=journals)
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)

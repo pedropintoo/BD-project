@@ -1,4 +1,4 @@
-{% for article in article %}
+{% for article in articles %}
     <div class="card alig-center mt-3"> 
         <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
             <div class="contact-list-item-details" hx-get="/articles/{{ article.ArticleID }}">
