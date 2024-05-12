@@ -11,7 +11,7 @@ CREATE TABLE Journal(
     [Name]              VARCHAR(100)    NOT NULL,
     PrintISSN           VARCHAR(9),
     EletronicISSN       VARCHAR(9),
-    Frequency           VARCHAR(20),
+    [Url]               VARCHAR(50),
     Publisher           VARCHAR(50),
     PRIMARY KEY (JournalID),
     --UNIQUE ([Name], Publisher),

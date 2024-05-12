@@ -6,8 +6,8 @@ import json
 import urllib
 import gzip
 from persistency.session import create_connection
-from tables.tables import *
-from full_data.download import get_fullData_links
+from tables import *
+
 
 
 def insert_author(author: Author):
@@ -49,53 +49,6 @@ def insert_institution(institution: Institution):
             print("Truncated maybe. Error...", Institution, e) 
         except Exception as e:
             print("Error...", Institution, e)   
-             
-
-def insert_article(article: Article):
-    with create_connection() as conn:
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                "INSERT INTO Article VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                article.ArticleID,
-                article.Title,
-                article.Abstract,
-                article.DOI,
-                article.StartPage,
-                article.EndPage,
-                article.JournalID,
-                article.Volume)
-            cursor.commit()
-        except pyodbc.IntegrityError as e:
-            print("Article integrity error.", e)
-        except pyodbc.ProgrammingError as e:
-            print("Article creation error.", e)
-        except pyodbc.DataError as e:
-            print("Truncated maybe. Error...", article, e) 
-        except Exception as e:
-            print("Error...", article, e)
-
-def insert_topic(topic: Topic):
-    with create_connection() as conn:
-        cursor = conn.cursor()
-        
-        # VER QUAL O ERRO QUE DÁ E TRATAR
-
-        try:
-            cursor.execute(
-                "INSERT INTO Topic VALUES (?, ?, ?)",
-                topic.TopicID,
-                topic.Name,
-                topic.Description)
-            cursor.commit()
-        except pyodbc.IntegrityError as e:
-            print("Topic integrity error.", e)
-        except pyodbc.ProgrammingError as e:
-            print("Topic creation error.", e)
-        except pyodbc.DataError as e:
-            print("Truncated maybe. Error...", topic, e) 
-        except Exception as e:
-            print("Error...", topic, e)
 
 def insert_journal(journal: Journal):
     with create_connection() as conn:
@@ -121,6 +74,30 @@ def insert_journal(journal: Journal):
         except Exception as e:
             print("Error...", journal, e)
 
+def insert_article(article: Article):
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO Article VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                article.ArticleID,
+                article.Title,
+                article.Abstract,
+                article.DOI,
+                article.StartPage,
+                article.EndPage,
+                article.JournalID,
+                article.Volume)
+            cursor.commit()
+        except pyodbc.IntegrityError as e:
+            print("Article integrity error.", e)
+        except pyodbc.ProgrammingError as e:
+            print("Article creation error.", e)
+        except pyodbc.DataError as e:
+            print("Truncated maybe. Error...", article, e) 
+        except Exception as e:
+            print("Error...", article, e)
+
 def insert_journalVolume(journalVolume: JournalVolume):
     with create_connection() as conn:
         cursor = conn.cursor()
@@ -139,6 +116,33 @@ def insert_journalVolume(journalVolume: JournalVolume):
             print("Truncated maybe. Error...", journalVolume, e) 
         except Exception as e:
             print("Error...", journalVolume, e)
+
+def insert_topic(topic: Topic):
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        
+        # VER QUAL O ERRO QUE DÁ E TRATAR
+
+        try:
+            cursor.execute(
+                "INSERT INTO Topic VALUES (?, ?, ?)",
+                topic.TopicID,
+                topic.Name,
+                topic.Description)
+            cursor.commit()
+        except pyodbc.IntegrityError as e:
+            print("Topic integrity error.", e)
+        except pyodbc.ProgrammingError as e:
+            print("Topic creation error.", e)
+        except pyodbc.DataError as e:
+            print("Truncated maybe. Error...", topic, e) 
+        except Exception as e:
+            print("Error...", topic, e)
+
+
+############
+
+# Insert data from the buffer into the database
 
 def insert_authors_and_institutions(buffer):
     # Read data from the file into a list of dictionaries
@@ -171,7 +175,28 @@ def insert_authors_and_institutions(buffer):
         # Insert author data
         insert_author(author)
 
+def insert_journals(buffer):
+    # Read data from the file into a list of dictionaries
+    for line in buffer:
+        # Load each line as JSON
+        journal_data = json.loads(line)
+        
+        journal_name = journal_data["name"]
+        
 
+
+        # Create Journal object
+        journal = Journal(
+            JournalID = journal_data["id"],
+            Name = journal_name,
+            PrintISSN = journal_data["issn"],
+            EletronicISSN = journal_data["alternate_issns"][0] if journal_data["alternate_issns"] else None,
+            Url = journal_data["url"],
+            Publisher = None
+            )
+
+        # Insert journal data
+        insert_journal(journal)
 
 def insert_articles_and_topics_and_journals(buffer):
     # Read data from the file into a list of dictionaries
@@ -260,15 +285,20 @@ def insert_articles_and_topics_and_journals(buffer):
 
 if __name__ == '__main__':
     # Authors + Institutions
-    file_path = "tables\\sample-data\\authors\\authors-sample.jsonl"
-    buffer = open(file_path, "r", encoding="utf-8").readlines()
-    insert_authors_and_institutions(buffer)
+    # file_path = "tables\\sample-data\\authors\\authors-sample.jsonl"
+    # buffer = open(file_path, "r", encoding="utf-8").readlines()
+    # insert_authors_and_institutions(buffer)
+
+    # Journals
+    file_path2 = "tables\\sample-data\\publication-venues\\publication-venues-sample.jsonl"
+    buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
+    insert_journals(buffer2)
 
     # Articles + Topics + Journals
-    file_path1 = "tables\\sample-data\\papers\\papers-sample.jsonl"
-    buffer1 = open(file_path1, "r", encoding="utf-8").readlines()
-    # miss file publication-venues
-    insert_articles_and_topics_and_journals(buffer1)
+    # file_path1 = "tables\\sample-data\\papers\\papers-sample.jsonl"
+    # buffer1 = open(file_path1, "r", encoding="utf-8").readlines()
+    # # miss file publication-venues
+    # insert_articles_and_topics_and_journals(buffer1)
 
     # buffer = gzip.open("tables\\full_data\\author0.jsonl.gz", "r").readlines()
     # print("buffer length: ", len(buffer))
