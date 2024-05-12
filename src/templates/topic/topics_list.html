@@ -1,0 +1,10 @@
+{% for topic in topics %}
+    <div class="card alig-center mt-3"> 
+        <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
+            <div class="contact-list-item-details" hx-get="/topics/{{ topic.TopicID }}">
+                <div>Name: <strong>{{ topic.Name }}</strong></div>
+                <div>Description: {{ topic.Description }}</div>
+            </div>
+        </div>
+    </div>   
+{% endfor %}

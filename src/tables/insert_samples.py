@@ -6,7 +6,7 @@ import json
 import urllib
 import gzip
 from persistency.session import create_connection
-from tables import *
+from tables.tables import *
 from full_data.download import get_fullData_links
 
 
@@ -51,37 +51,6 @@ def insert_institution(institution: Institution):
             print("Error...", Institution, e)   
              
 
-def insert_authors_and_institutions(buffer):
-    # Read data from the file into a list of dictionaries
-    for line in buffer:
-        # Load each line as JSON
-        author_data = json.loads(line)
-        institution_name = author_data['affiliations'][0] if author_data["affiliations"] else None
-
-        if institution_name:
-            # Create Institution object
-            institution = Institution(
-                InstitutionID = abs(hash(institution_name)) % (10 ** 10),
-                Name = institution_name,
-                Address = None
-                )
-
-            # Insert institution data
-            insert_institution(institution)
-
-
-        # Create Author object
-        author = Author(
-            AuthorID = author_data["authorid"],
-            Name = author_data["name"],
-            Url = author_data["url"],
-            ORCID = author_data["externalids"].get("ORCID", None) if author_data["externalids"] else None,
-            InstitutionID = institution.InstitutionID if institution_name else None
-            )
-
-        # Insert author data
-        insert_author(author)
-
 def insert_article(article: Article):
     with create_connection() as conn:
         cursor = conn.cursor()
@@ -109,13 +78,8 @@ def insert_article(article: Article):
 def insert_topic(topic: Topic):
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-                "SELECT * FROM Topic WHERE TopicID=?",
-                topic.TopicID
-                )
-        result = cursor.fetchone()
-        if result is None:
-            return
+        
+        # VER QUAL O ERRO QUE DÁ E TRATAR
 
         try:
             cursor.execute(
@@ -136,14 +100,8 @@ def insert_topic(topic: Topic):
 def insert_journal(journal: Journal):
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-                "SELECT * FROM Journal WHERE JournalID=?",
-                journal.JournalID
-                )
-        result = cursor.fetchone()
-        if result is None:
-            return
 
+        # VER QUAL O ERRO QUE DÁ E TRATAR
         try:
             cursor.execute(
                 "INSERT INTO Journal VALUES (?, ?, ?, ?, ?, ?)",
@@ -181,6 +139,38 @@ def insert_journalVolume(journalVolume: JournalVolume):
             print("Truncated maybe. Error...", journalVolume, e) 
         except Exception as e:
             print("Error...", journalVolume, e)
+
+def insert_authors_and_institutions(buffer):
+    # Read data from the file into a list of dictionaries
+    for line in buffer:
+        # Load each line as JSON
+        author_data = json.loads(line)
+        institution_name = author_data['affiliations'][0] if author_data["affiliations"] else None
+
+        if institution_name:
+            # Create Institution object
+            institution = Institution(
+                InstitutionID = abs(hash(institution_name)) % (10 ** 10),
+                Name = institution_name,
+                Address = None
+                )
+
+            # Insert institution data
+            insert_institution(institution)
+
+
+        # Create Author object
+        author = Author(
+            AuthorID = author_data["authorid"],
+            Name = author_data["name"],
+            Url = author_data["url"],
+            ORCID = author_data["externalids"].get("ORCID", None) if author_data["externalids"] else None,
+            InstitutionID = institution.InstitutionID if institution_name else None
+            )
+
+        # Insert author data
+        insert_author(author)
+
 
 
 def insert_articles_and_topics_and_journals(buffer):

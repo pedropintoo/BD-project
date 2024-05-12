@@ -34,13 +34,13 @@
               </div>
             </div>
         </nav>
-        <form class="d-flex col-6 mt-2" method="get" hx-get="/search-institutions" hx-trigger="submit" hx-target=".institutions-list">
+        <form class="d-flex col-6 mt-2" method="get" hx-get="/search-topics" hx-trigger="submit" hx-target=".topics-list">
           <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="query">
           <button class="btn btn-outline-success" type="submit">Search</button>
       </form>
       
-        <div class="institutions-list alig-center w-50" hx-get="/institutions" hx-trigger="refreshAuthorList from:body">
-            {% include "institutions/institutions_list.html" %}
+        <div class="topics-list alig-center w-50" hx-get="/topics" hx-trigger="refreshAuthorList from:body">
+            {% include "topics/topics_list.html" %}
         </div>
     </div>
 </body>
