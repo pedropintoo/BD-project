@@ -62,7 +62,7 @@ def insert_journal(journal: Journal):
                 journal.Name,
                 journal.PrintISSN,
                 journal.EletronicISSN,
-                journal.Frequency,
+                journal.Url,
                 journal.Publisher)
             cursor.commit()
         except pyodbc.IntegrityError as e:
@@ -183,8 +183,6 @@ def insert_journals(buffer):
         
         journal_name = journal_data["name"]
         
-
-
         # Create Journal object
         journal = Journal(
             JournalID = journal_data["id"],
@@ -240,7 +238,7 @@ def insert_articles_and_topics_and_journals(buffer):
             Name = journalName,
             PrintISSN = None,
             EletronicISSN = None,
-            Frequency = None,
+            Url = None,
             Publisher = None
         )
         insert_journal(journal)
