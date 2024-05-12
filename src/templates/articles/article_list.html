@@ -1,0 +1,10 @@
+{% for article in article %}
+    <div class="card alig-center mt-3"> 
+        <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
+            <div class="contact-list-item-details" hx-get="/articles/{{ article.ArticleID }}">
+                <div>Title: <strong>{{ article.Title }}</strong></div>
+                <div>DOI: {{ article.DOI }}</div>
+            </div>
+        </div>
+    </div>   
+{% endfor %}
