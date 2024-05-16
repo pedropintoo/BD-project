@@ -2,6 +2,8 @@ from flask import Flask, make_response, render_template, render_template_string,
 
 from persistency import author, institution, article, topic, journal
 
+from persistency.author import Author
+
 app = Flask(__name__)
 
 
@@ -23,20 +25,50 @@ def authors_list():
     return render_template("authors/authors_list.html", authors=authors)
 
 @app.route("/authors/<author_id>", methods=["GET"])
-def authors_details(author_id: str):
-    author = author.read(author_id)
-    return render_template("authors/author_details_view.html", author=author)
+def author_details(author_id: str):
+    author_details = author.read(author_id)
+    template = "authors/author_details_view.html" if not request.args.get("edit") else "authors/authors_details_form.html"
+    return render_template(template, author=author_details, AuthorID=author_id)
 
 @app.route('/search-authors', methods=['GET'])
 def search_authors():
-    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
-    
-    if query != "":
+    query = request.args.get('query', '').strip()
+    if query:
         authors = author.filterByName(query)
     else:
-        authors = author.list_all()    
-
+        authors = author.list_all()
     return render_template('authors/authors_list.html', authors=authors)
+
+@app.route("/authors/<author_id>", methods=["DELETE"])
+def author_delete(author_id: str):
+    try:
+        author.delete(author_id)
+        response = make_response()
+        response.headers["HX-Trigger"] = "refreshAuthorList"
+        return response
+    except Exception as ex:
+        r = make_response(render_template_string(f"{ex}"))
+        return r
+
+@app.route("/authors/new", methods=["GET"])
+def new_author_details():
+    return render_template("authors/authors_details_form.html")
+
+@app.route("/authors", methods=["POST"])
+def save_author_details():
+    data = request.form
+    institution_id = data.get('InstitutionID') or None
+    new_author = author.Author(
+        AuthorID=data.get('AuthorID'),
+        Name=data.get('Name'),
+        Url=data.get('Url'),
+        ORCID=data.get('ORCID'),
+        InstitutionID=institution_id
+    )
+    author.create(new_author)
+    response = make_response()
+    response.headers["HX-Trigger"] = "refreshAuthorList"
+    return response
 
 ########
 

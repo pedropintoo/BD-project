@@ -131,7 +131,7 @@ def insert_topic(topic: Topic):
                 topic.Description)
             cursor.commit()
         except pyodbc.IntegrityError as e:
-            print("Topic integrity error. Cannot insert duplicate", e)
+            print("Topic integrity error. Cannot insert duplicate")
         except pyodbc.ProgrammingError as e:
             print("Topic creation error.", e)
         except pyodbc.DataError as e:
@@ -203,21 +203,19 @@ def insert_articles_and_topics_and_journals(buffer):
         article_data = json.loads(line)
         
         # We only insert papers who has a topic
-        if article_data["s2fieldsofstudy"] is None:
-            continue
+        if article_data["s2fieldsofstudy"] is not None:
+            # Get topics
+            for item in article_data["s2fieldsofstudy"]:
+                topic_name = item["category"]    
+                # Create Topic object
+                topic = Topic(
+                    TopicID = str(abs(hash(topic_name)) % (10 ** 10)),
+                    Name = topic_name,
+                    Description = None
+                )
 
-        # Get topics
-        for item in article_data["s2fieldsofstudy"]:
-            topic_name = item["category"]    
-            # Create Topic object
-            topic = Topic(
-                TopicID = str(abs(hash(topic_name)) % (10 ** 10)),
-                Name = topic_name,
-                Description = None
-            )
-
-            # Insert topic data
-            insert_topic(topic)
+                # Insert topic data
+                insert_topic(topic)
 
         journal_info = article_data["journal"]
         if journal_info == "" or journal_info is None:
@@ -230,9 +228,15 @@ def insert_articles_and_topics_and_journals(buffer):
         volume = journal_info.get("volume")
         if volume is None:
             volume = -1
+        else:
+            volume = volume.split(" ")[-1]    
         journalName = journal_info["name"]
 
-        journalID = str(abs(hash(journalName)) % (10 ** 10))
+        journalID = article_data["publicationvenueid"]
+
+        if journalID is None:
+            continue
+
         # create journal object
         journal = Journal(
             JournalID = journalID,
@@ -264,7 +268,7 @@ def insert_articles_and_topics_and_journals(buffer):
         if volume and isinstance(volume, str) and volume.isdigit():
             volume = int(volume)
         else:
-            volume = 0
+            volume = -1
         
         # Create Article object
         article = Article(

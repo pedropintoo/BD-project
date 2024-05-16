@@ -29,7 +29,7 @@ CREATE TABLE JournalVolume(
 
 CREATE TABLE Article(
     ArticleID           VARCHAR(10)     NOT NULL,
-    Title              NVARCHAR(100)    NOT NULL,
+    Title              NVARCHAR(500)    NOT NULL,
     Abstract            VARCHAR(1250),
     DOI                 VARCHAR(50),
     StartPage           INT,

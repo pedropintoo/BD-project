@@ -74,3 +74,4 @@ def filterByName(name: str):
             row.JournalID or "Not found",
             row.Volume or "Not found"
         ) for row in rows]
+    

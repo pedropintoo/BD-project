@@ -28,3 +28,4 @@ def create_connection():
 
 # if __name__ == "__main__":
 #     print(conn_string())
+#     print(create_connection())

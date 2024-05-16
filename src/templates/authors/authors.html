@@ -7,6 +7,7 @@
     <title>AcademiQuest</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css">
+    
 </head>
 <body>
     <div class="container">
@@ -37,14 +38,19 @@
               </div>
             </div>
         </nav>
+        <div class="left-column">
         <form class="d-flex col-6 mt-2" method="get" hx-get="/search-authors" hx-trigger="submit" hx-target=".authors-list">
           <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="query">
           <button class="btn btn-outline-success" type="submit">Search</button>
+          
       </form>
-      
-        <div class="authors-list alig-center w-50" hx-get="/authors-list" hx-trigger="refreshAuthorList from:body">
+      <button class="btn btn-outline-success ms-2" hx-get="/authors/new" hx-swap="innerHTML" hx-target="#content">New</button>
+
+        <div class="authors-list align-center w-50" hx-get="/authors-list" hx-trigger="refreshAuthorList from:body">
             {% include "authors/authors_list.html" %}
         </div>
+      </div>
+      <div id="content" class="right-column"></div>
     </div>
 </body>
 </html>
