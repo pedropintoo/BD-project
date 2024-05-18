@@ -42,6 +42,7 @@ def search_authors():
 @app.route("/authors/<author_id>", methods=["DELETE"])
 def author_delete(author_id: str):
     try:
+        print(f"Deleting author {author_id}")
         author.delete(author_id)
         response = make_response()
         response.headers["HX-Trigger"] = "refreshAuthorList"
@@ -68,6 +69,16 @@ def save_author_details():
     author.create(new_author)
     response = make_response()
     response.headers["HX-Trigger"] = "refreshAuthorList"
+    return response
+
+@app.route("/authors/<author_id>", methods=["POST"])
+def author_update(author_id: str):
+    new_details = Author(**request.form)
+    author.update(author_id: str, new_details)
+
+    response = make_response(render_template_string(f"Author {author_id: str} updated successfully!"))
+    response.headers["HX-Trigger"] = "refreshContactList"
+
     return response
 
 ########

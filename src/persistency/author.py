@@ -99,3 +99,5 @@ def delete(c_id: str):
         except IntegrityError as ex:
             if ex.args[0] == "23000":
                 raise Exception(f"Author {c_id} cannot be deleted. Probably has orders.") from ex
+
+def update(author_id: str, author: CustomerDetails):
