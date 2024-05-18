@@ -28,7 +28,7 @@ def authors_list():
 def author_details(author_id: str):
     author_details = author.read(author_id)
     template = "authors/author_details_view.html" if not request.args.get("edit") else "authors/authors_details_form.html"
-    return render_template(template, author=author_details, AuthorID=author_id)
+    return render_template(template, author=author_details)
 
 @app.route('/search-authors', methods=['GET'])
 def search_authors():
@@ -58,27 +58,49 @@ def new_author_details():
 @app.route("/authors", methods=["POST"])
 def save_author_details():
     data = request.form
-    institution_id = data.get('InstitutionID') or None
+    AuthorID = author.generate_author_id(data.get('Name'),data.get('InstitutionID')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
+    print("NEW AAUTHOR ID GENERATED")
+    print(AuthorID)
     new_author = author.Author(
-        AuthorID=data.get('AuthorID'),
+        AuthorID=AuthorID,
         Name=data.get('Name'),
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
-        InstitutionID=institution_id
+        InstitutionID=data.get('InstitutionID')
     )
-    author.create(new_author)
-    response = make_response()
+    print("NEW Author Added")
+    try:
+        author.create(new_author)
+        response = make_response()
+    except Exception:
+        print(new_author)
+        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+
+    print(new_author)
     response.headers["HX-Trigger"] = "refreshAuthorList"
     return response
 
 @app.route("/authors/<author_id>", methods=["POST"])
 def author_update(author_id: str):
-    new_details = Author(**request.form)
-    author.update(author_id: str, new_details)
-
-    response = make_response(render_template_string(f"Author {author_id: str} updated successfully!"))
-    response.headers["HX-Trigger"] = "refreshContactList"
-
+    data = request.form
+    InstitutionID = author.get_institution_id(data.get('InstitutionName'))
+    new_author = author.AuthorDetails(
+        AuthorID=author_id,
+        Name=data.get('Name'),
+        Url=data.get('Url'),
+        ORCID=data.get('ORCID'),
+        InstitutionID=InstitutionID,
+        InstitutionName=data.get('InstitutionName')
+    )
+    try:
+        print("UPDATE")
+        author.update(author_id, new_author)
+        response = make_response(author_details(author_id))
+    except Exception:
+        print(new_author)
+        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+    
+    response.headers["HX-Trigger"] = "refreshAuthorList"
     return response
 
 ########

@@ -293,9 +293,9 @@ if __name__ == '__main__':
     insert_authors_and_institutions(buffer)
 
     # Journals
-    file_path2 = "tables\\sample-data\\publication-venues\\publication-venues-sample.jsonl"
-    buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
-    insert_journals(buffer2)
+    # file_path2 = "tables\\sample-data\\publication-venues\\publication-venues-sample.jsonl"
+    # buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
+    # insert_journals(buffer2)
 
     # Articles + Topics + JournalVolume
     # file_path2 = "tables\\sample-data\\papers\\papers-sample.jsonl"

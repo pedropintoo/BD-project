@@ -1,8 +1,13 @@
-<div class="authors-details" id="authorsDetails1">
-    <h2>Author Details: {{ AuthorID }}</h2>
-
-    <p><strong>Name:</strong> {{ author.Name }}</p>
-    <p><strong>URL:</strong> <a href="{{ author.Url }}">{{ author.Url }}</a></p>
-    <p><strong>ORCID:</strong> {{ author.ORCID }}</p>
-    <p><strong>Institution ID:</strong> {{ author.InstitutionID }}</p>
+<div class="container mt-4" id="authorsDetails1">
+    <div class="card">
+        <div class="card-header">
+            <h2>Author Details: {{ author.AuthorID }}</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> {{ author.Name }}</p>
+            <p><strong>URL:</strong> <a href="{{ author.Url }}" class="text-decoration-none">{{ author.Url }}</a></p>
+            <p><strong>ORCID:</strong> {{ author.ORCID }}</p>
+            <p><strong>Institution Name:</strong> {{ author.InstitutionName }}</p>
+        </div>
+    </div>
 </div>

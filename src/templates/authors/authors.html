@@ -42,8 +42,8 @@
           <div class="row col-6">
             <form class="d-flex mt-2 me-0" method="get" hx-get="/search-authors" hx-trigger="submit" hx-target=".authors-list">
               <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="query">
-              <button class="btn btn-outline-success me-2" hx-get="/authors/new" hx-swap="innerHTML" hx-target="#content">New</button>
-              <button class="btn btn-outline-success" type="submit">Search</button>   
+              <button class="btn btn-outline-success me-2" type="submit">Search</button>
+              <button class="btn btn-outline-success" hx-get="/authors/new" hx-swap="innerHTML" hx-target="#content">New</button>
             </form>
           </div>
         <div class="row mt-3">

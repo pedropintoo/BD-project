@@ -1,40 +1,39 @@
 <div id="authorsDetails1" class="container mt-4">
     <form class="authors-details-form"
-          hx-post="/authors{% if AuthorID is defined %}/{{ AuthorID }}{% endif %}"
-          hx-target="#content" hx-swap="innerHTML">
-        <div class="mb-3">
-            <label for="AuthorID" class="form-label">AuthorID:</label>
-            <input type="text" class="form-control" id="AuthorID" name="AuthorID"
-                   value="{% if AuthorID is defined %}{{ author.AuthorID }}{% endif %}">
-        </div>
-
+          hx-target="#content" hx-swap="innerHTML"
+          hx-post="/authors{% if author is defined %}/{{ author.AuthorID }}{% endif %}">
+        
         <div class="mb-3">
             <label for="Name" class="form-label">Name:</label>
             <input type="text" class="form-control" id="Name" name="Name"
-                   value="{% if AuthorID is defined %}{{ author.Name }}{% endif %}">
+                   value="{% if author is defined %}{{ author.Name }}{% endif %}">
         </div>
 
         <div class="mb-3">
             <label for="Url" class="form-label">URL:</label>
             <input type="text" class="form-control" id="Url" name="Url"
-                   value="{% if AuthorID is defined %}{{ author.Url }}{% endif %}">
+                   value="{% if author is defined %}{{ author.Url }}{% endif %}">
         </div>
 
         <div class="mb-3">
             <label for="ORCID" class="form-label">ORCID:</label>
             <input type="text" class="form-control" id="ORCID" name="ORCID"
-                   value="{% if AuthorID is defined %}{{ author.ORCID }}{% endif %}">
+                   value="{% if author is defined %}{{ author.ORCID }}{% endif %}">
         </div>
 
         <div class="mb-3">
-            <label for="InstitutionID" class="form-label">Institution ID:</label>
-            <input type="text" class="form-control" id="InstitutionID" name="InstitutionID"
-                   value="{% if AuthorID is defined %}{{ author.InstitutionID }}{% endif %}">
+            <label for="InstitutionName" class="form-label">Institution Name:</label>
+            <input type="text" class="form-control" id="InstitutionName" name="InstitutionName"
+                   value="{% if author is defined %}{{ author.InstitutionName }}{% endif %}">
         </div>
-
-        <button type="submit" class="btn btn-primary">Save</button>
-        {% if AuthorID is defined %}
-            <button type="button" class="btn btn-secondary" hx-get="/authors/{{ AuthorID }}">Cancel</button>
+        <div class="d-flex align-items-center">
+        <button type="submit" class="btn btn-primary me-2">Save</button>
+        {% if author is defined %}
+            <button type="button" class="btn btn-secondary me-2" hx-get="/authors/{{ author.AuthorID }}">Cancel</button>
         {% endif %}
+        {% if warning %}
+        <p class="text-danger fw-bold mb-0 ms-2">{{ warning }}</p>
+        {% endif %}
+       </div>
     </form>
 </div>
