@@ -30,24 +30,39 @@ class AuthorDetails(NamedTuple):
     Url: str
     ORCID: str
     InstitutionID: str
-    InstitutionName: str = None    
-
+    InstitutionName: str
+    ArticlesCount: int
+    ArticlesList: list[str]  # Adiciona uma lista para os títulos dos artigos
     
 
-def read(author_id: str) -> Author:
+def read(author_id: str) -> AuthorDetails:
     with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("EXEC ListAllAuthorsDetails @AuthorID = ?", author_id)
-        row = cursor.fetchone()
-        if row:
-            return AuthorDetails(
-                row[0] or None,
-                row[1] or None,
-                row[2] or None,
-                row[3] or None,
-                row[4] or None,
-                row[5] or None
+
+        # Primeiro conjunto de resultados: Detalhes do Autor
+        author_row = cursor.fetchone()
+        if author_row:
+            author_details = AuthorDetails(
+                author_row[0] or None,
+                author_row[1] or None,
+                author_row[2] or None,
+                author_row[3] or None,
+                author_row[4] or None,
+                author_row[5] or None,
+                author_row[6] or 0,
+                []  # Inicializa uma lista vazia para os artigos
             )
+
+            # Segundo conjunto de resultados: Lista de Artigos
+            cursor.nextset()  # Move para o próximo conjunto de resultados
+            articles = cursor.fetchall()
+            articles_list = [article[0] for article in articles]
+
+            # Atualiza author_details com a lista de artigos
+            author_details = author_details._replace(ArticlesList=articles_list)
+
+            return author_details
         else:
             return AuthorDetails(
                 None,
@@ -55,8 +70,11 @@ def read(author_id: str) -> Author:
                 None,
                 None,
                 None,
-                None
+                None,
+                0,
+                []
             )
+
 
 def create(author: Author):
     with create_connection() as conn:
@@ -75,43 +93,44 @@ def create(author: Author):
 def list_all():
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("EXEC ListAllAuthors;")
+        cursor.execute("EXEC OrderByAuthorName;")
         rows = cursor.fetchall()
         
         return [AuthorSimple(
             row.AuthorID or None,
             row.Name or None,
             row.Url or None,
-            row.InstitutionName or None
+            row.InstitutionName or None,
+            # row.ArticlesCount or None
         ) for row in rows]
 
 
 def filterByName(name: str):
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Author WHERE Name LIKE ?;", '%'+name+'%')
+        cursor.execute("EXEC OrderBySearchAuthorName @AuthorName = ?", name)
         rows = cursor.fetchall()
-
+        
         if rows == None:
             return NOT_FOUND
 
-        return [Author(
+        return [AuthorSimple(
             row.AuthorID or None,
             row.Name or None,
             row.Url or None,
-            row.ORCID or None,
-            row.InstitutionID or None,
+            row.InstitutionName or None,
+            # row.ArticlesCount or None
         ) for row in rows]
     
-def delete(c_id: str):
+def delete(author_id: str):
     with create_connection() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("DELETE Author WHERE AuthorID = ?;", c_id)
+            cursor.execute("EXEC DeleteAuthor @AuthorID = ?", author_id)
             cursor.commit()
-        except IntegrityError as ex:
-            if ex.args[0] == "23000":
-                raise Exception(f"Author {c_id} cannot be deleted. Probably has orders.") from ex
+        except Exception as e:
+            print("Error:", e)
+            raise
 
 
 def get_institution_id(institution_name: str) -> str:

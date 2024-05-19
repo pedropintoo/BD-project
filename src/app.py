@@ -1,8 +1,9 @@
-from flask import Flask, make_response, render_template, render_template_string, request
+from flask import Flask, jsonify, make_response, render_template, render_template_string, request
 
 from persistency import author, institution, article, topic, journal
 
 from persistency.author import Author
+from persistency.session import create_connection
 
 app = Flask(__name__)
 
@@ -90,7 +91,8 @@ def author_update(author_id: str):
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
         InstitutionID=InstitutionID,
-        InstitutionName=data.get('InstitutionName')
+        InstitutionName=data.get('InstitutionName'),
+        ArticlesCount=data.get('ArticlesCount')
     )
     try:
         print("UPDATE")
@@ -118,20 +120,97 @@ def institutions_list():
     return render_template("institutions/institutions_list.html", institutions=institutions)
 
 @app.route("/institutions/<institution_id>", methods=["GET"])
-def institutions_details(institution_id: str):
-    institution = institution.read(institution_id)
-    return render_template("institutions/institution_details_view.html", institution=institution)
+def institution_details(institution_id: str):
+    institution_details = institution.read(institution_id)
+    template = "institutions/institution_details_view.html" if not request.args.get("edit") else "institutions/institutions_details_form.html"
+    return render_template(template, institution=institution_details)
 
 @app.route('/search-institutions', methods=['GET'])
 def search_institutions():
     query = request.args.get('query', '').strip()  # Get the search term from the query parameter
     
-    if query != "":
+    if query:
         institutions = institution.filterByName(query)
     else:
         institutions = institution.list_all()    
-
     return render_template('institutions/institutions_list.html', institutions=institutions)
+
+@app.route("/institutions/<institution_id>", methods=["DELETE"])
+def institution_delete(institution_id: str):
+    try:
+        print(f"Deleting institution {institution_id}")
+        institution.delete(institution_id)
+        response = make_response()
+        response.headers["HX-Trigger"] = "refreshInstitutionList"
+        return response
+    except Exception as ex:
+        r = make_response(render_template_string(f"{ex}"))
+        print(ex)
+        return r
+
+@app.route("/institutions/new", methods=["GET"])
+def new_institution_details():
+    return render_template("institutions/institutions_details_form.html")
+
+@app.route("/institutions", methods=["POST"])
+def save_institution_details():
+    data = request.form
+    InstitutionID = institution.generate_institution_id(data.get('Name'),data.get('Address')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
+    print("NEW INSTITUTION ID GENERATED")
+    print(InstitutionID)
+    new_institution = institution.Institution(
+        InstitutionID=InstitutionID,
+        Name=data.get('Name'),
+        Address=data.get('Address')
+    )
+    print("NEW Institution Added")
+    try:
+        institution.create(new_institution)
+        response = make_response()
+    except Exception:
+        print(new_institution)
+        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
+
+    print(new_institution)
+    response.headers["HX-Trigger"] = "refreshInstitutionList"
+    return response
+
+@app.route("/institutions/<institution_id>", methods=["POST"])
+def institution_update(institution_id: str):
+    data = request.form
+
+    new_institution = institution.AuthorDetails(
+        InstitutionID=institution_id,
+        Name=data.get('Name'),
+        Address=data.get('Address')
+    )
+    try:
+        print("UPDATE")
+        institution.update(institution_id, new_institution)
+        response = make_response(institution_details(institution_id))
+    except Exception:
+        print(new_institution)
+        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
+    
+    response.headers["HX-Trigger"] = "refreshInstitutionList"
+    return response
+
+
+
+# Testing purpose
+@app.route('/search-prefix', methods=['GET'])
+def search_prefix():
+    print("Searching prefix")
+    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
+    
+    if query != "":
+        institutions_names = institution.search_institution_by_prefix(query)
+    else:
+        institutions_names = []    
+         
+    # Renderiza um fragmento HTML com os resultados
+    return render_template('institutions/institutions_fragment.html', institutions=institutions_names)
+
 
 ########
 

@@ -150,3 +150,14 @@ CREATE TABLE Comment (
     FOREIGN KEY (ArticleID) REFERENCES Article(ArticleID),
     FOREIGN KEY (UserID) REFERENCES [User](UserID)
 );
+
+
+ALTER TABLE Author
+ADD ArticlesCount AS (
+    SELECT COUNT(*)
+    FROM Wrote_by
+    WHERE Wrote_by.AuthorID = Author.AuthorID
+) PERSISTED;
+
+
+

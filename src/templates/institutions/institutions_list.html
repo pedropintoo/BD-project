@@ -1,10 +1,20 @@
+
 {% for institution in institutions %}
-    <div class="card alig-center mt-3"> 
-        <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
-            <div class="contact-list-item-details" hx-get="/institutions/{{ institution.InstitutionID }}">
+    <div class="card align-center mb-3  shadow"> 
+        <div class="card-body contact-list-item">
+            <div class="contact-list-item-details" >
                 <div>Name: <strong>{{ institution.Name }}</strong></div>
-                <div>ORCID: {{ institution.Address }}</div>
+                <div>Address: <strong>{{ institution.Address }}</strong></div>
             </div>
+        </div>
+        <div class="p-2">
+            <button class="btn btn-primary edit-primary" hx-target="#content" hx-get="/institutions/{{ institution.InstitutionID }}?edit=true">Edit</button>
+            <button class="btn btn-danger delete-button"
+                    hx-delete="/institutions/{{ institution.InstitutionID }}"
+                    hx-confirm="Are you sure?">Delete</button>
+                    <button class="btn btn-success edit-primary" hx-target="#content" hx-get="/institutions/{{ institution.InstitutionID }}">See More</button>        
         </div>
     </div>   
 {% endfor %}
+
+
