@@ -27,11 +27,13 @@ class Author(NamedTuple):
     Url: str
     ORCID: str
     InstitutionID: str
+    ArticlesCount: int
 
 class Institution(NamedTuple):
     InstitutionID: str
     Name: str
     Address: str
+    AuthorsCount: int
 
 class Topic(NamedTuple):
     TopicID: str

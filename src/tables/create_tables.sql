@@ -75,6 +75,7 @@ CREATE TABLE Institution(
     InstitutionID       VARCHAR(10)     NOT NULL,
     [Name]              VARCHAR(300)     NOT NULL,
     [Address]           VARCHAR(100),
+    AuthorsCount               INT,
     PRIMARY KEY (InstitutionID),
     UNIQUE ([Name])
 );
@@ -128,6 +129,7 @@ CREATE TABLE Author (
     [Url]               VARCHAR(100),
     ORCID               VARCHAR(19),
     InstitutionID       VARCHAR(10),
+    ArticlesCount               INT,
     PRIMARY KEY (AuthorID),
     FOREIGN KEY (InstitutionID) REFERENCES Institution(InstitutionID),
 );
@@ -150,14 +152,6 @@ CREATE TABLE Comment (
     FOREIGN KEY (ArticleID) REFERENCES Article(ArticleID),
     FOREIGN KEY (UserID) REFERENCES [User](UserID)
 );
-
-
-ALTER TABLE Author
-ADD ArticlesCount AS (
-    SELECT COUNT(*)
-    FROM Wrote_by
-    WHERE Wrote_by.AuthorID = Author.AuthorID
-) PERSISTED;
 
 
 

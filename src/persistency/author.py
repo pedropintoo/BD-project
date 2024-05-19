@@ -15,6 +15,7 @@ NOT_FOUND = Author(
             None,
             None,
             None,
+            None,
             None
             )
 
@@ -33,6 +34,15 @@ class AuthorDetails(NamedTuple):
     InstitutionName: str
     ArticlesCount: int
     ArticlesList: list[str]  # Adiciona uma lista para os títulos dos artigos
+
+class AuthorUpdate(NamedTuple):
+    AuthorID: str
+    Name: str
+    Url: str
+    ORCID: str
+    InstitutionID: str
+    InstitutionName: str
+
     
 
 def read(author_id: str) -> AuthorDetails:
@@ -81,27 +91,35 @@ def create(author: Author):
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO Author (AuthorID, Name, Url, ORCID, InstitutionID)
-            VALUES (?, ?, ?, ?, ?);
+            INSERT INTO Author (AuthorID, Name, Url, ORCID, InstitutionID, ArticlesCount)
+            VALUES (?, ?, ?, ?, ?, ?);
             """,
-            (author.AuthorID, author.Name, author.Url, author.ORCID, author.InstitutionID)
+            (author.AuthorID, author.Name, author.Url, author.ORCID, author.InstitutionID, author.ArticlesCount)
         )
         conn.commit()
 
-
+def list_all_by_article_count():
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("EXEC OrderByArticlesCount;")
+        rows = cursor.fetchall()
+        return [AuthorSimple(
+            row.AuthorID or None,
+            row.Name or None,
+            row.Url or None,
+            row.InstitutionName or None
+        ) for row in rows]
 
 def list_all():
     with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("EXEC OrderByAuthorName;")
         rows = cursor.fetchall()
-        
         return [AuthorSimple(
             row.AuthorID or None,
             row.Name or None,
             row.Url or None,
-            row.InstitutionName or None,
-            # row.ArticlesCount or None
+            row.InstitutionName or None
         ) for row in rows]
 
 
@@ -118,8 +136,7 @@ def filterByName(name: str):
             row.AuthorID or None,
             row.Name or None,
             row.Url or None,
-            row.InstitutionName or None,
-            # row.ArticlesCount or None
+            row.InstitutionName or None
         ) for row in rows]
     
 def delete(author_id: str):
@@ -139,7 +156,6 @@ def get_institution_id(institution_name: str) -> str:
         cursor.execute("EXEC GetInstitutionIDByName @InstitutionName = ?", institution_name)
         row = cursor.fetchone()
         print("Institution ID")
-        print(row)
         if row:
             return row[0]
         return None

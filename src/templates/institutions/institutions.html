@@ -45,18 +45,55 @@
               <button class="btn btn-outline-success me-2" type="submit">Search</button>
               <button class="btn btn-outline-success" hx-get="/institutions/new" hx-swap="innerHTML" hx-target="#content">New</button>
             </form>
+
+            <div class="container mt-4">
+              <!-- Button Group -->
+              <div class="btn-group" role="group" aria-label="Button group with SVG icons">
+                <button id="btn1" type="button" class="btn btn-outline-secondary d-flex align-items-center active" hx-get="/institutions-list" hx-target=".institutions-list">
+                  <span class="me-2">Name</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up" viewBox="0 0 16 16">
+                    <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.5.5 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5M7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1z"/>
+                  </svg>
+                </button>
+                  <button id="btn2" type="button" class="btn btn-outline-secondary d-flex align-items-center" hx-get="/institutions-list-author-count" hx-target=".institutions-list">
+                    <span class="me-2">Author count</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up" viewBox="0 0 16 16">
+                      <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.5.5 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5M7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1z"/>
+                    </svg>
+                  </button>
+              </div>
+              
           </div>
+
+          </div>
+
+
+
         <div class="row mt-3">
             <div class="institutions-list align-center w-50 col-6" hx-get="/institutions-list" hx-trigger="refreshInstitutionList from:body">
                 {% include "institutions/institutions_list.html" %}
             </div>
         
+
+
           <div class="col-6">
             <div id="content"></div>
           </div>  
         </div>
       
     </div>
+
+    <script>
+      document.getElementById('btn1').addEventListener('click', function() {
+          this.classList.add('active');
+          document.getElementById('btn2').classList.remove('active');
+      });
+  
+      document.getElementById('btn2').addEventListener('click', function() {
+          this.classList.add('active');
+          document.getElementById('btn1').classList.remove('active');
+      });
+  </script>
 </body>
 </html>
 

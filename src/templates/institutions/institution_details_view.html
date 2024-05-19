@@ -6,6 +6,20 @@
         <div class="card-body">
             <p><strong>Name:</strong> {{ institution.Name }}</p>
             <p><strong>Address:</strong> {{ institution.Address }}</p>
+            <p><strong>Authors Count:</strong> {{ institution.AuthorsCount }}</p>
+
+            {% if institution.AuthorsCount > 0 %}
+            <div>
+                <br>
+                <ul class="list-group">
+                    {% for authorName in institution.AuthorsList %}
+                        <li class="list-group-item">
+                            <i class="fas fa-file-alt"></i> {{ authorName }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

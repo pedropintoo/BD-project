@@ -25,6 +25,11 @@ def authors_list():
     authors = author.list_all()
     return render_template("authors/authors_list.html", authors=authors)
 
+@app.route("/authors-list-article-count", methods=["GET"])
+def authors_list_by_article_count():
+    authors = author.list_all_by_article_count()
+    return render_template("authors/authors_list.html", authors=authors)
+
 @app.route("/authors/<author_id>", methods=["GET"])
 def author_details(author_id: str):
     author_details = author.read(author_id)
@@ -67,7 +72,8 @@ def save_author_details():
         Name=data.get('Name'),
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
-        InstitutionID=data.get('InstitutionID')
+        InstitutionID=data.get('InstitutionID'),
+        ArticlesCount=0
     )
     print("NEW Author Added")
     try:
@@ -85,15 +91,22 @@ def save_author_details():
 def author_update(author_id: str):
     data = request.form
     InstitutionID = author.get_institution_id(data.get('InstitutionName'))
-    new_author = author.AuthorDetails(
+    
+
+    new_author = author.AuthorUpdate(
         AuthorID=author_id,
         Name=data.get('Name'),
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
         InstitutionID=InstitutionID,
-        InstitutionName=data.get('InstitutionName'),
-        ArticlesCount=data.get('ArticlesCount')
+        InstitutionName=data.get('InstitutionName')
     )
+
+    if InstitutionID is None:
+        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+        response.headers["HX-Trigger"] = "refreshAuthorList"
+        return response
+    
     try:
         print("UPDATE")
         author.update(author_id, new_author)
@@ -117,6 +130,11 @@ def institutions():
 @app.route("/institutions-list", methods=["GET"])
 def institutions_list():
     institutions = institution.list_all()
+    return render_template("institutions/institutions_list.html", institutions=institutions)
+
+@app.route("/institutions-list-author-count", methods=["GET"])
+def institutions_list_by_author_count():
+    institutions = institution.list_all_by_author_count()
     return render_template("institutions/institutions_list.html", institutions=institutions)
 
 @app.route("/institutions/<institution_id>", methods=["GET"])
@@ -161,7 +179,8 @@ def save_institution_details():
     new_institution = institution.Institution(
         InstitutionID=InstitutionID,
         Name=data.get('Name'),
-        Address=data.get('Address')
+        Address=data.get('Address'),
+        AuthorsCount=0
     )
     print("NEW Institution Added")
     try:
@@ -178,12 +197,16 @@ def save_institution_details():
 @app.route("/institutions/<institution_id>", methods=["POST"])
 def institution_update(institution_id: str):
     data = request.form
-
-    new_institution = institution.AuthorDetails(
+    InstitutionID = institution.generate_institution_id(data.get('Name'),data.get('Address'))
+    new_institution = institution.InstitutionSimple(
         InstitutionID=institution_id,
         Name=data.get('Name'),
         Address=data.get('Address')
     )
+    # if InstitutionID is None:
+    #     response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
+    #     response.headers["HX-Trigger"] = "refreshInstitutionList"
+    #     return response
     try:
         print("UPDATE")
         institution.update(institution_id, new_institution)

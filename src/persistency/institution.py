@@ -14,44 +14,87 @@ NOT_FOUND = Institution(
             None,
             None,
             None,
+            None,
             )
 
-class Institution(NamedTuple):
+class InstitutionSimple(NamedTuple):
     InstitutionID: str
     Name: str
     Address: str
 
-def read(institution_id: str):
+class InstitutionDetails(NamedTuple):
+    InstitutionID: str
+    Name: str
+    Address: str
+    AuthorsCount: int
+    AuthorsList: list[str]  # Adiciona uma lista para os títulos dos artigos
+
+def read(institution_id: str) -> InstitutionDetails:
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Institution WHERE InstitutionID = ?;", institution_id)
-        row = cursor.fetchone()
+        cursor.execute("EXEC ListAllInstitutionsDetails @InstitutionID = ?", institution_id)
+        # Primeiro conjunto de resultados: Detalhes da Institution
+        institution_row = cursor.fetchone()
 
-        return Institution(
-            row.InstitutionID or None,
-            row.Name or None,
-            row.Address or None,
-        )
+        if institution_row:
+            institution_details = InstitutionDetails(
+                institution_row[0] or None,
+                institution_row[1] or None,
+                institution_row[2] or None,
+                institution_row[3] or None,
+                []
+
+            )
+
+            # Segundo conjunto de resultados: Lista de Artigos
+            cursor.nextset()  # Move para o próximo conjunto de resultados
+            authors = cursor.fetchall()
+            authors_list = [author[0] for author in authors]
+
+            # Atualiza author_details com a lista de artigos
+            institution_details = institution_details._replace(AuthorsList=authors_list)
+
+            return institution_details
+        else:
+            return InstitutionDetails(
+                None,
+                None,
+                None,
+                0,
+                []
+
+            )
 
 def create(institution: Institution):
     with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO Institution (InstitutionID, Name, Address)
+            INSERT INTO Institution (InstitutionID, Name, Address, AuthorsCount)
             VALUES (?, ?, ?);
             """,
-            (institution.InstitutionID, institution.Name, institution.Address)
+            (institution.InstitutionID, institution.Name, institution.Address, institution.AuthorsCount)
         )
         conn.commit()
+
+def list_all_by_author_count():
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("EXEC OrderByAuthorsCount;")
+        rows = cursor.fetchall()
+        return [InstitutionSimple(
+            row.InstitutionID or None,
+            row.Name or None,
+            row.Address or None
+        ) for row in rows]
 
 def list_all():
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Institution;")
+        cursor.execute("EXEC OrderByInstitutionName;")
         rows = cursor.fetchall()
 
-        return [Institution(
+        return [InstitutionSimple(
             row.InstitutionID or None,
             row.Name or None,
             row.Address or None,
@@ -60,13 +103,13 @@ def list_all():
 def filterByName(name: str):
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Institution WHERE Name LIKE ?;", '%'+name+'%')
+        cursor.execute("EXEC OrderBySearchInstitutionName @InstitutionName = ?", name)
         rows = cursor.fetchall()
 
         if rows == None:
             return NOT_FOUND
 
-        return [Institution(
+        return [InstitutionSimple(
             row.InstitutionID or None,
             row.Name or None,
             row.Address or None,
@@ -91,6 +134,27 @@ def generate_institution_id(name: str, address: str) -> str:
     institution_id = hash_object.hexdigest()[:10]
     return institution_id
 
+
+def update(institution_id: str, institution: Institution):
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        try:
+            
+            # Atualiza os detalhes da instituição
+            cursor.execute(
+                """
+                UPDATE Institution
+                SET Name = ?, Address = ?
+                WHERE InstitutionID = ?;
+                """,
+                institution.Name if institution.Name != "None" else None,
+                institution.Address if institution.Address != "None" else None,
+                institution_id
+            )
+            conn.commit()
+        except IntegrityError as ex:
+            if ex.args[0] == "23000":
+                raise Exception(f"Institution {institution_id} cannot be deleted.") from ex
 
 # Testing purpose
 def search_institution_by_prefix(prefix: str):
