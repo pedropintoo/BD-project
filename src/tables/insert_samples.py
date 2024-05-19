@@ -284,19 +284,19 @@ def insert_articles_and_topics_and_journals(buffer):
 
 if __name__ == '__main__':
     # Authors + Institutions
-    # file_path = "tables\\sample-data\\authors\\authors-sample.jsonl"
-    # buffer = open(file_path, "r", encoding="utf-8").readlines()
-    # insert_authors_and_institutions(buffer)
+    file_path = "tables\\sample-data\\authors\\authors-sample.jsonl"
+    buffer = open(file_path, "r", encoding="utf-8").readlines()
+    insert_authors_and_institutions(buffer)
 
     # Journals
-    # file_path2 = "tables\\sample-data\\publication-venues\\publication-venues-sample.jsonl"
-    # buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
-    # insert_journals(buffer2)
+    file_path2 = "tables\\sample-data\\publication-venues\\publication-venues-sample.jsonl"
+    buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
+    insert_journals(buffer2)
 
     # Articles + Topics + JournalVolume
-    file_path2 = "tables\\sample-data\\papers\\papers-sample.jsonl"
-    buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
-    insert_articles_and_topics_and_journals(buffer2)
+    # file_path2 = "tables\\sample-data\\papers\\papers-sample.jsonl"
+    # buffer2 = open(file_path2, "r", encoding="utf-8").readlines()
+    # insert_articles_and_topics_and_journals(buffer2)
 
     # # miss file publication-venues
     # insert_articles_and_topics_and_journals(buffer1)

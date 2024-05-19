@@ -14,9 +14,9 @@ tables =  [
     "Has_Keywords",
     "Keyword",
     "Cited_by",
+    "Belongs_to",
     "Article",
     "JournalVolume",
-    "Belongs_to",
     "Journal",
     "Topic"
 ]

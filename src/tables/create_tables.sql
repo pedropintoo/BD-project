@@ -19,14 +19,6 @@ CREATE TABLE Journal(
     --UNIQUE (EletronicISSN)
 );
 
-CREATE TABLE Belongs_to(
-    TopicID             VARCHAR(10)     NOT NULL,
-    JournalID           VARCHAR(40)     NOT NULL,
-    PRIMARY KEY (TopicID,JournalID),
-    FOREIGN KEY (TopicID) REFERENCES Topic(TopicID),
-    FOREIGN KEY (JournalID) REFERENCES Journal(JournalID)
-);
-
 CREATE TABLE JournalVolume(
     JournalID           VARCHAR(40)     NOT NULL,
     Volume              INT             NOT NULL,
@@ -39,7 +31,7 @@ CREATE TABLE Article(
     ArticleID           VARCHAR(10)     NOT NULL,
     Title              NVARCHAR(100)    NOT NULL,
     Abstract            VARCHAR(1250),
-    DOI                 VARCHAR(50)     NOT NULL,
+    DOI                 VARCHAR(50),
     StartPage           INT,
     EndPage             INT,
     JournalID           VARCHAR(40)     NOT NULL,
@@ -48,6 +40,14 @@ CREATE TABLE Article(
     FOREIGN KEY (JournalID,Volume) REFERENCES JournalVolume(JournalID,Volume),
     --UNIQUE (DOI),
     --UNIQUE (JournalID, Volume, StartPage, EndPage)
+);
+
+CREATE TABLE Belongs_to(
+    TopicID             VARCHAR(10)     NOT NULL,
+    ArticleID           VARCHAR(10)     NOT NULL,
+    PRIMARY KEY (TopicID,ArticleID),
+    FOREIGN KEY (TopicID) REFERENCES Topic(TopicID),
+    FOREIGN KEY (ArticleID) REFERENCES Article(ArticleID)
 );
 
 CREATE TABLE Cited_by(
