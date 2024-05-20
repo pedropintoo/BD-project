@@ -78,6 +78,7 @@ def save_author_details():
     try:
         author.create(new_author)
         response = make_response()
+        print("NEW AUTHOR ADDED")
         print(new_author)
     except Exception as e:
         print(e)

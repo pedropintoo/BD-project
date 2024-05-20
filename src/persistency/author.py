@@ -130,9 +130,9 @@ def create(author):
                         print(row)
 
             conn.commit()
-            print("NEW AUTHOR ADDED")
         except Exception as e:
             print("Error:", e)
+            raise
 
 def list_all_by_article_count():
     with create_connection() as conn:
