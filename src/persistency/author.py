@@ -93,7 +93,6 @@ def read(author_id: str) -> AuthorDetails:
             )
 
 
-
 def create(author: AuthorCreate):
     InstitutionID = get_institution_id(author.InstitutionName)
 

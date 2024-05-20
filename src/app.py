@@ -61,38 +61,6 @@ def author_delete(author_id: str):
 def new_author_details():
     return render_template("authors/authors_details_form.html")
 
-# @app.route("/authors", methods=["POST"])
-# def save_author_details():
-#     data = request.form
-#     InstitutionID = author.get_institution_id(data.get('InstitutionName'))
-#     AuthorID = author.generate_author_id(data.get('Name'),data.get('InstitutionName')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
-
-#     new_author = author.Author(
-#         AuthorID=AuthorID,
-#         Name=data.get('Name'),
-#         Url=data.get('Url'),
-#         ORCID=data.get('ORCID'),
-#         InstitutionID=InstitutionID,
-#         ArticlesCount=0
-#     )
-
-#     if InstitutionID is None and data.get('InstitutionName') != "":
-#         print("InstitutionID is None")
-#         response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
-#         response.headers["HX-Trigger"] = "refreshAuthorList"
-#         return response
-    
-#     try:
-#         author.create(new_author)
-#         response = make_response()
-#         print("NEW Author Added")
-#         print(new_author)
-#     except Exception:
-#         print(new_author)
-#         response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
-
-#     response.headers["HX-Trigger"] = "refreshAuthorList"
-#     return response
 
 @app.route("/authors", methods=["POST"])
 def save_author_details():
