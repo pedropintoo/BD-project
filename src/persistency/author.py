@@ -93,22 +93,46 @@ def read(author_id: str) -> AuthorDetails:
             )
 
 
-def create(author: AuthorCreate):
-    InstitutionID = get_institution_id(author.InstitutionName)
+# def create(author: AuthorCreate):
 
-    if InstitutionID is None and author.InstitutionName != "":
-        raise Exception(f"Institution {author.InstitutionName} not found.")
+#     InstitutionID = get_institution_id(author.InstitutionName)
 
+#     if InstitutionID is None and author.InstitutionName != "":
+#         raise Exception(f"Institution {author.InstitutionName} not found.")
+
+#     with create_connection() as conn:
+#         cursor = conn.cursor()
+#         cursor.execute(
+#             """
+#             INSERT INTO Author (AuthorID, Name, Url, ORCID, InstitutionID, ArticlesCount)
+#             VALUES (?, ?, ?, ?, ?, ?)
+#             """,
+#             (author.AuthorID, author.Name, author.Url, author.ORCID, InstitutionID, 0)
+#         )
+#         conn.commit()
+ 
+
+def create(author):
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO Author (AuthorID, Name, Url, ORCID, InstitutionID, ArticlesCount)
-            VALUES (?, ?, ?, ?, ?, ?);
-            """,
-            (author.AuthorID, author.Name, author.Url, author.ORCID, InstitutionID, 0)
-        )
-        conn.commit()
+        print("Try to create author")
+        try:
+            cursor.execute(
+                "EXEC CreateNewAuthor @AuthorID = ?, @Name = ?, @Url = ?, @ORCID = ?, @InstitutionName = ?",
+                author.AuthorID, author.Name, author.Url, author.ORCID, author.InstitutionName
+            )
+
+            # Fetch messages from the server
+            while cursor.nextset():
+                if cursor.description:
+                    rows = cursor.fetchall()
+                    for row in rows:
+                        print(row)
+
+            conn.commit()
+            print("NEW AUTHOR ADDED")
+        except Exception as e:
+            print("Error:", e)
 
 def list_all_by_article_count():
     with create_connection() as conn:

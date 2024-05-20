@@ -8,6 +8,7 @@ DROP PROCEDURE IF EXISTS ListAllAuthorsDetails;
 DROP PROCEDURE IF EXISTS GetInstitutionIDByName;
 DROP PROCEDURE IF EXISTS DeleteAuthor;
 DROP PROCEDURE IF EXISTS OrderByArticlesCount;  
+DROP PROCEDURE IF EXISTS CreateNewAuthor;
 DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Insert;
 DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Delete;
 DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Update;
@@ -131,15 +132,48 @@ BEGIN
 END;
 
 
-
 CREATE PROCEDURE GetInstitutionIDByName
-    @InstitutionName VARCHAR(300)
+    @InstitutionName VARCHAR(300),
+    @InstitutionID VARCHAR(10) OUTPUT
 AS
 BEGIN
-    SELECT InstitutionID
+    SELECT @InstitutionID = InstitutionID
     FROM Institution
     WHERE [Name] = @InstitutionName
 END;
+
+CREATE PROCEDURE CreateNewAuthor
+    -- Arguments
+    @AuthorID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Url VARCHAR(100),
+    @ORCID VARCHAR(19),
+    @InstitutionName VARCHAR(300)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @InstitutionID VARCHAR(10)
+
+    -- Call GetInstitutionIDByName Procedure
+    EXEC GetInstitutionIDByName @InstitutionName, @InstitutionID OUTPUT
+
+    -- Print "InstitutionID: " InstitutionID
+    -- RAISERROR ('InstitutionID: %s', 16, 1, @InstitutionID)
+    -- RETURN
+
+    -- Check if InstitutionID is NULL and InstitutionName is not empty
+    IF @InstitutionID = '(null)' AND @InstitutionName != ''
+    BEGIN
+        RAISERROR ('Institution %s not found.', 16, 1, @InstitutionID)
+        RETURN
+    END
+
+    -- Insert Author
+    INSERT INTO Author (AuthorID, [Name], [Url], ORCID, InstitutionID, ArticlesCount) 
+    VALUES (@AuthorID, @Name, @Url, @ORCID, @InstitutionID, 0)
+END;
+
 
 
 -- Trigger para atualizar ArticlesCount após inserção em Wrote_by

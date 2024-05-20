@@ -72,15 +72,15 @@ def save_author_details():
         Name=data.get('Name'),
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
-        InstitutionName=data.get('InstitutionName'),
+        InstitutionName=data.get('InstitutionName')
     )
 
     try:
         author.create(new_author)
         response = make_response()
-        print("NEW Author Added")
         print(new_author)
-    except Exception:
+    except Exception as e:
+        print(e)
         print("ERROR CREATING AUTHOR")
         print(new_author)
         response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
