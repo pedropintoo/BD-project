@@ -93,18 +93,6 @@ def read(author_id: str) -> AuthorDetails:
             )
 
 
-# def create(author: Author):
-
-#     with create_connection() as conn:
-#         cursor = conn.cursor()
-#         cursor.execute(
-#             """
-#             INSERT INTO Author (AuthorID, Name, Url, ORCID, InstitutionID, ArticlesCount)
-#             VALUES (?, ?, ?, ?, ?, ?);
-#             """,
-#             (author.AuthorID, author.Name, author.Url, author.ORCID, author.InstitutionID, author.ArticlesCount)
-#         )
-#         conn.commit()
 
 def create(author: AuthorCreate):
     InstitutionID = get_institution_id(author.InstitutionName)

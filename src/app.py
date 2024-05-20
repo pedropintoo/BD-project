@@ -122,26 +122,6 @@ def save_author_details():
     return response    
 
 
-    if InstitutionID is None and data.get('InstitutionName') != "":
-        print("InstitutionID is None")
-        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
-        response.headers["HX-Trigger"] = "refreshAuthorList"
-        return response
-    
-    try:
-        author.create(new_author)
-        response = make_response()
-        print("NEW Author Added")
-        print(new_author)
-    except Exception:
-        print(new_author)
-        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
-
-    response.headers["HX-Trigger"] = "refreshAuthorList"
-    return response
-
-
-
 @app.route("/authors/<author_id>", methods=["POST"])
 def author_update(author_id: str):
     data = request.form
