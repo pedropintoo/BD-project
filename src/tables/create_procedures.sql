@@ -163,7 +163,7 @@ BEGIN
     -- RETURN
 
     -- Check if InstitutionID is NULL and InstitutionName is not empty
-    IF @InstitutionID = '(null)' AND @InstitutionName != ''
+    IF @InstitutionID is NULL AND @InstitutionName != ''
     BEGIN
         RAISERROR ('Institution %s not found.', 16, 1, @InstitutionID)
         RETURN
