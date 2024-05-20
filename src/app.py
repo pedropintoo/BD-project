@@ -61,37 +61,91 @@ def author_delete(author_id: str):
 def new_author_details():
     return render_template("authors/authors_details_form.html")
 
+# @app.route("/authors", methods=["POST"])
+# def save_author_details():
+#     data = request.form
+#     InstitutionID = author.get_institution_id(data.get('InstitutionName'))
+#     AuthorID = author.generate_author_id(data.get('Name'),data.get('InstitutionName')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
+
+#     new_author = author.Author(
+#         AuthorID=AuthorID,
+#         Name=data.get('Name'),
+#         Url=data.get('Url'),
+#         ORCID=data.get('ORCID'),
+#         InstitutionID=InstitutionID,
+#         ArticlesCount=0
+#     )
+
+#     if InstitutionID is None and data.get('InstitutionName') != "":
+#         print("InstitutionID is None")
+#         response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+#         response.headers["HX-Trigger"] = "refreshAuthorList"
+#         return response
+    
+#     try:
+#         author.create(new_author)
+#         response = make_response()
+#         print("NEW Author Added")
+#         print(new_author)
+#     except Exception:
+#         print(new_author)
+#         response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+
+#     response.headers["HX-Trigger"] = "refreshAuthorList"
+#     return response
+
 @app.route("/authors", methods=["POST"])
 def save_author_details():
     data = request.form
-    AuthorID = author.generate_author_id(data.get('Name'),data.get('InstitutionID')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
-    print("NEW AAUTHOR ID GENERATED")
-    print(AuthorID)
-    new_author = author.Author(
+    AuthorID = author.generate_author_id(data.get('Name'),data.get('InstitutionName')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
+
+    new_author = author.AuthorCreate(
         AuthorID=AuthorID,
         Name=data.get('Name'),
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
-        InstitutionID=data.get('InstitutionID'),
-        ArticlesCount=0
+        InstitutionName=data.get('InstitutionName'),
     )
-    print("NEW Author Added")
+
     try:
         author.create(new_author)
         response = make_response()
+        print("NEW Author Added")
+        print(new_author)
+    except Exception:
+        print("ERROR CREATING AUTHOR")
+        print(new_author)
+        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+        
+
+    response.headers["HX-Trigger"] = "refreshAuthorList"
+    return response    
+
+
+    if InstitutionID is None and data.get('InstitutionName') != "":
+        print("InstitutionID is None")
+        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+        response.headers["HX-Trigger"] = "refreshAuthorList"
+        return response
+    
+    try:
+        author.create(new_author)
+        response = make_response()
+        print("NEW Author Added")
+        print(new_author)
     except Exception:
         print(new_author)
         response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
 
-    print(new_author)
     response.headers["HX-Trigger"] = "refreshAuthorList"
     return response
+
+
 
 @app.route("/authors/<author_id>", methods=["POST"])
 def author_update(author_id: str):
     data = request.form
     InstitutionID = author.get_institution_id(data.get('InstitutionName'))
-    
 
     new_author = author.AuthorUpdate(
         AuthorID=author_id,
@@ -108,8 +162,8 @@ def author_update(author_id: str):
         return response
     
     try:
-        print("UPDATE")
         author.update(author_id, new_author)
+        print("UPDATE")
         response = make_response(author_details(author_id))
     except Exception:
         print(new_author)
@@ -174,20 +228,19 @@ def new_institution_details():
 def save_institution_details():
     data = request.form
     InstitutionID = institution.generate_institution_id(data.get('Name'),data.get('Address')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
-    print("NEW INSTITUTION ID GENERATED")
-    print(InstitutionID)
     new_institution = institution.Institution(
         InstitutionID=InstitutionID,
         Name=data.get('Name'),
         Address=data.get('Address'),
         AuthorsCount=0
     )
-    print("NEW Institution Added")
+
     try:
         institution.create(new_institution)
         response = make_response()
+        print("NEW INSTITUTION ADDED")
     except Exception:
-        print(new_institution)
+        print("ERROR CREATING INSTITUTION")
         response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
 
     print(new_institution)
@@ -197,22 +250,18 @@ def save_institution_details():
 @app.route("/institutions/<institution_id>", methods=["POST"])
 def institution_update(institution_id: str):
     data = request.form
-    InstitutionID = institution.generate_institution_id(data.get('Name'),data.get('Address'))
     new_institution = institution.InstitutionSimple(
         InstitutionID=institution_id,
         Name=data.get('Name'),
         Address=data.get('Address')
     )
-    # if InstitutionID is None:
-    #     response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
-    #     response.headers["HX-Trigger"] = "refreshInstitutionList"
-    #     return response
+    
     try:
-        print("UPDATE")
         institution.update(institution_id, new_institution)
         response = make_response(institution_details(institution_id))
+        print("UPDATED INSTITUTION")
     except Exception:
-        print(new_institution)
+        print("ERROR UPDATING INSTITUTION")
         response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
     
     response.headers["HX-Trigger"] = "refreshInstitutionList"

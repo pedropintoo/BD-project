@@ -13,8 +13,8 @@
                 <br>
                 <ul class="list-group">
                     {% for authorName in institution.AuthorsList %}
-                        <li class="list-group-item">
-                            <i class="fas fa-file-alt"></i> {{ authorName }}
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-user mr-2"></i> {{ authorName }}
                         </li>
                     {% endfor %}
                 </ul>

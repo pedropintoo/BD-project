@@ -67,11 +67,12 @@ def read(institution_id: str) -> InstitutionDetails:
 
 def create(institution: Institution):
     with create_connection() as conn:
+        print("Institution: ", institution)
         cursor = conn.cursor()
         cursor.execute(
             """
             INSERT INTO Institution (InstitutionID, Name, Address, AuthorsCount)
-            VALUES (?, ?, ?);
+            VALUES (?, ?, ?, ?);
             """,
             (institution.InstitutionID, institution.Name, institution.Address, institution.AuthorsCount)
         )

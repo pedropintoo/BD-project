@@ -25,6 +25,13 @@ class AuthorSimple(NamedTuple):
     Url: str
     InstitutionName: str = None
 
+class AuthorCreate(NamedTuple):
+    AuthorID: str
+    Name: str
+    Url: str
+    ORCID: str
+    InstitutionName: str = None    
+
 class AuthorDetails(NamedTuple):
     AuthorID: str
     Name: str
@@ -86,7 +93,25 @@ def read(author_id: str) -> AuthorDetails:
             )
 
 
-def create(author: Author):
+# def create(author: Author):
+
+#     with create_connection() as conn:
+#         cursor = conn.cursor()
+#         cursor.execute(
+#             """
+#             INSERT INTO Author (AuthorID, Name, Url, ORCID, InstitutionID, ArticlesCount)
+#             VALUES (?, ?, ?, ?, ?, ?);
+#             """,
+#             (author.AuthorID, author.Name, author.Url, author.ORCID, author.InstitutionID, author.ArticlesCount)
+#         )
+#         conn.commit()
+
+def create(author: AuthorCreate):
+    InstitutionID = get_institution_id(author.InstitutionName)
+
+    if InstitutionID is None and author.InstitutionName != "":
+        raise Exception(f"Institution {author.InstitutionName} not found.")
+
     with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -94,7 +119,7 @@ def create(author: Author):
             INSERT INTO Author (AuthorID, Name, Url, ORCID, InstitutionID, ArticlesCount)
             VALUES (?, ?, ?, ?, ?, ?);
             """,
-            (author.AuthorID, author.Name, author.Url, author.ORCID, author.InstitutionID, author.ArticlesCount)
+            (author.AuthorID, author.Name, author.Url, author.ORCID, InstitutionID, 0)
         )
         conn.commit()
 
@@ -160,9 +185,9 @@ def get_institution_id(institution_name: str) -> str:
             return row[0]
         return None
 
-def generate_author_id(name: str, institution_id: str) -> str:
+def generate_author_id(name: str, institution_name: str) -> str:
     # Combine name and institution_id
-    combined = f"{name}{institution_id}"
+    combined = f"{name}{institution_name}"
     # Generate SHA-256 hash of the combined string
     hash_object = hashlib.sha256(combined.encode())
     # Get the first 10 characters of the hex digest
