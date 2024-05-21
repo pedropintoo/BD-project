@@ -55,7 +55,7 @@ class AuthorUpdate(NamedTuple):
 def read(author_id: str) -> AuthorDetails:
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("EXEC ListAllAuthorsDetails @AuthorID = ?", author_id)
+        cursor.execute("EXEC ListAuthorDetails @AuthorID = ?", author_id)
 
         # Primeiro conjunto de resultados: Detalhes do Autor
         author_row = cursor.fetchone()

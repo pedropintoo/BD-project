@@ -4,7 +4,7 @@
 DROP FUNCTION IF EXISTS ListAllAuthors;
 DROP PROCEDURE IF EXISTS OrderByAuthorName;
 DROP PROCEDURE IF EXISTS OrderBySearchAuthorName;
-DROP PROCEDURE IF EXISTS ListAllAuthorsDetails;
+DROP PROCEDURE IF EXISTS ListAuthorDetails;
 DROP PROCEDURE IF EXISTS GetInstitutionIDByName;
 DROP PROCEDURE IF EXISTS DeleteAuthor;
 DROP PROCEDURE IF EXISTS OrderByArticlesCount;  
@@ -37,7 +37,7 @@ ON Author (Name);
 CREATE NONCLUSTERED INDEX IDX_Author_ArticlesCount
 ON Author (ArticlesCount);
 
-CREATE PROCEDURE ListAllAuthorsDetails
+CREATE PROCEDURE ListAuthorDetails
     @AuthorID VARCHAR(10)
 AS
 BEGIN

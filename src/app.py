@@ -20,6 +20,8 @@ def authors():
     list_authors = author.list_all()
     return render_template("authors/authors.html", authors=list_authors)
 
+
+# list authors
 @app.route("/authors-list", methods=["GET"])
 def authors_list():
     authors = author.list_all()
@@ -30,12 +32,28 @@ def authors_list_by_article_count():
     authors = author.list_all_by_article_count()
     return render_template("authors/authors_list.html", authors=authors)
 
+# show or edit specific author
 @app.route("/authors/<author_id>", methods=["GET"])
 def author_details(author_id: str):
     author_details = author.read(author_id)
     template = "authors/author_details_view.html" if not request.args.get("edit") else "authors/authors_details_form.html"
+    # TODO: maybe refresh the author list
     return render_template(template, author=author_details)
 
+# delete author
+@app.route("/authors/<author_id>", methods=["DELETE"])
+def author_delete(author_id: str):
+    try:
+        print(f"Deleting author {author_id}")
+        author.delete(author_id)
+        response = make_response()
+        response.headers["HX-Trigger"] = "refreshAuthorList" # refresh the author list
+        return response
+    except Exception as ex:
+        r = make_response(render_template_string(f"{ex}"))
+        return r
+
+# search authors
 @app.route('/search-authors', methods=['GET'])
 def search_authors():
     query = request.args.get('query', '').strip()
@@ -45,24 +63,12 @@ def search_authors():
         authors = author.list_all()
     return render_template('authors/authors_list.html', authors=authors)
 
-@app.route("/authors/<author_id>", methods=["DELETE"])
-def author_delete(author_id: str):
-    try:
-        print(f"Deleting author {author_id}")
-        author.delete(author_id)
-        response = make_response()
-        response.headers["HX-Trigger"] = "refreshAuthorList"
-        return response
-    except Exception as ex:
-        r = make_response(render_template_string(f"{ex}"))
-        return r
-
+# form to create new author
 @app.route("/authors/new", methods=["GET"])
 def new_author_details():
     return render_template("authors/authors_details_form.html")
 
-
-@app.route("/authors", methods=["POST"])
+@app.route("/authors", methods=["POST"]) # publish new author
 def save_author_details():
     data = request.form
     AuthorID = author.generate_author_id(data.get('Name'),data.get('InstitutionName')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
@@ -86,11 +92,10 @@ def save_author_details():
         print(new_author)
         response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
         
-
     response.headers["HX-Trigger"] = "refreshAuthorList"
     return response    
 
-
+# update author TODO: put all in one query!
 @app.route("/authors/<author_id>", methods=["POST"])
 def author_update(author_id: str):
     data = request.form

@@ -1,7 +1,7 @@
 <div id="authorsDetails1" class="container mt-4">
     <form class="authors-details-form"
           hx-target="#content" hx-swap="innerHTML"
-          hx-post="/authors{% if author is defined %}/{{ author.AuthorID }}{% endif %}">
+          hx-post="/authors{% if author is defined and warning is not defined %}/{{ author.AuthorID }}{% endif %}">
         
         <div class="mb-3">
             <label for="Name" class="form-label">Name:</label>
@@ -30,7 +30,7 @@
        
         <div class="d-flex align-items-center">
         <button type="submit" class="btn btn-primary me-2">Save</button>
-        {% if author is defined %}
+        {% if author is defined and warning is not defined %}
             <button type="button" class="btn btn-secondary me-2" hx-get="/authors/{{ author.AuthorID }}">Cancel</button>
         {% endif %}
         {% if warning %}
