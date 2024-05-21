@@ -1,0 +1,8 @@
+5 a 10 minutos
+slides
+video (2 a 3 minutos) - podemos acelarar 1.5x
+
+
+apresentar o tema
+enumerar tudo o que fizemos, tabelas constranins store procedures queries triggers (sem focar) - com exemplos screenshots da cena
+
