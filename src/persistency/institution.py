@@ -10,73 +10,63 @@ from pyodbc import IntegrityError
 from .session import create_connection
 from tables.tables import Institution
 
-NOT_FOUND = Institution(
-            None,
-            None,
-            None,
-            None,
-            )
-
 class InstitutionSimple(NamedTuple):
     InstitutionID: str
     Name: str
     Address: str
 
+class InstitutionForm(NamedTuple):
+    Name: str
+    Address: str
+
 class InstitutionDetails(NamedTuple):
-    InstitutionID: str
     Name: str
     Address: str
     AuthorsCount: int
-    AuthorsList: list[str]  # Adiciona uma lista para os títulos dos artigos
+    AuthorsList: list[str]
+
+NOT_FOUND = InstitutionSimple(
+            None,
+            None,
+            None,
+            )
+
 
 def read(institution_id: str) -> InstitutionDetails:
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("EXEC ListAllInstitutionsDetails @InstitutionID = ?", institution_id)
-        # Primeiro conjunto de resultados: Detalhes da Institution
+        cursor.execute("EXEC ListInstitutionDetails @InstitutionID = ?", institution_id)
+
         institution_row = cursor.fetchone()
+        institution_details = InstitutionDetails(
+            institution_row[0] or "",
+            institution_row[1] or "",
+            institution_row[2] or 0,
+            [] # start empty
+        )
 
-        if institution_row:
-            institution_details = InstitutionDetails(
-                institution_row[0] or None,
-                institution_row[1] or None,
-                institution_row[2] or None,
-                institution_row[3] or None,
-                []
+        # copy the author details to a new variable
+        cursor.nextset() 
+        authors = cursor.fetchall()
+        authors_list = [author[0] for author in authors]
+        institution_details = institution_details._replace(AuthorsList=authors_list)
 
-            )
+        return institution_details
 
-            # Segundo conjunto de resultados: Lista de Artigos
-            cursor.nextset()  # Move para o próximo conjunto de resultados
-            authors = cursor.fetchall()
-            authors_list = [author[0] for author in authors]
-
-            # Atualiza author_details com a lista de artigos
-            institution_details = institution_details._replace(AuthorsList=authors_list)
-
-            return institution_details
-        else:
-            return InstitutionDetails(
-                None,
-                None,
-                None,
-                0,
-                []
-
-            )
-
-def create(institution: Institution):
+def create(institution_id, institution: Institution):
     with create_connection() as conn:
-        print("Institution: ", institution)
         cursor = conn.cursor()
+        print("Try to create institution")
+
         cursor.execute(
             """
-            INSERT INTO Institution (InstitutionID, Name, Address, AuthorsCount)
-            VALUES (?, ?, ?, ?);
+            EXEC CreateInstitution @InstitutionID = ?, @Name = ?, @Address = ?
             """,
-            (institution.InstitutionID, institution.Name, institution.Address, institution.AuthorsCount)
+            (institution_id, institution.Name, institution.Address)
         )
+
         conn.commit()
+
 
 def list_all_by_author_count():
     with create_connection() as conn:
@@ -120,7 +110,7 @@ def delete(institution_id: str):
     with create_connection() as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("EXEC DeleteInstitutionAndUpdateAuthors @InstitutionID = ?", institution_id)
+            cursor.execute("EXEC DeleteInstitution @InstitutionID = ?", institution_id)
             cursor.commit()
         except Exception as e:
             print("Error:", e)
@@ -139,23 +129,18 @@ def generate_institution_id(name: str, address: str) -> str:
 def update(institution_id: str, institution: Institution):
     with create_connection() as conn:
         cursor = conn.cursor()
-        try:
-            
-            # Atualiza os detalhes da instituição
-            cursor.execute(
-                """
-                UPDATE Institution
-                SET Name = ?, Address = ?
-                WHERE InstitutionID = ?;
-                """,
-                institution.Name if institution.Name != "None" else None,
-                institution.Address if institution.Address != "None" else None,
-                institution_id
-            )
-            conn.commit()
-        except IntegrityError as ex:
-            if ex.args[0] == "23000":
-                raise Exception(f"Institution {institution_id} cannot be deleted.") from ex
+
+        cursor.execute(
+            """
+            EXEC UpdateInstitution 
+            @InstitutionID = ?, @Name = ?, @Address = ?;
+            """,
+            institution_id,
+            institution.Name if institution.Name != "" else None,
+            institution.Address if institution.Address != "" else None,
+        )
+        conn.commit()
+
 
 # Testing purpose
 def search_institution_by_prefix(prefix: str):

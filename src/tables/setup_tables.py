@@ -14,6 +14,9 @@ def readScriptsFromFile(filename):
 
 def create_tables():
     scripts = readScriptsFromFile("tables/create_tables.sql")
+    scripts.extend(readScriptsFromFile("tables/create_procedures.sql"))
+    scripts.extend(readScriptsFromFile("tables/create_triggers.sql"))
+    scripts.extend(readScriptsFromFile("tables/create_udfs.sql"))
 
     for command in scripts:
         with create_connection() as conn:
@@ -22,7 +25,7 @@ def create_tables():
                 if command:
                     cursor.execute(command)
             except Exception as e:
-                print("Table creation error.", e)
+                print("Error.", e)
             cursor.commit()
 
 

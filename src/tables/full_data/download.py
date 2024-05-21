@@ -105,7 +105,7 @@ def insert_author_many(authors):
     with create_connection() as conn:
         cursor = conn.cursor()
 
-        query = "INSERT INTO Author VALUES (?, ?, ?, ?, ?)"
+        query = "INSERT INTO Author VALUES (?, ?, ?, ?, ?, ?)"
 
         try:
             cursor.executemany(query, authors)
@@ -145,7 +145,7 @@ def insert_institution_many(institutions):
     with create_connection() as conn:
         cursor = conn.cursor()
 
-        query = "INSERT INTO Institution VALUES (?, ?, ?)"
+        query = "INSERT INTO Institution VALUES (?, ?, ?, ?)"
 
         try:
             cursor.executemany(query, institutions)
@@ -392,7 +392,8 @@ def insert_authors_and_institutions(buffer):
         institution = Institution(
             InstitutionID = abs(hash(institution_name)) % (10 ** 10),
             Name = institution_name,
-            Address = None
+            Address = None,
+            AuthorsCount = 0
             )
 
         institutions.append(institution)
@@ -404,7 +405,8 @@ def insert_authors_and_institutions(buffer):
             Name = author_data["name"],
             Url = author_data["url"],
             ORCID = author_data["externalids"].get("ORCID")[0] if (author_data["externalids"] and author_data["externalids"].get("ORCID") != None) else None,
-            InstitutionID = institution.InstitutionID if institution_name else None
+            InstitutionID = institution.InstitutionID if institution_name else None,
+            ArticlesCount = 0
             )
 
         authors.append(author)
@@ -583,7 +585,7 @@ if __name__ == '__main__':
     buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))
     inc = 25
-    max = 1000
+    max = 200
     for i in range(0, max, inc):
         insert_journals(buffer[i:i+inc])
         print("inserted [", i, ":", i+inc, "].")

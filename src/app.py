@@ -38,7 +38,7 @@ def author_details(author_id: str):
     author_details = author.read(author_id)
     template = "authors/author_details_view.html" if not request.args.get("edit") else "authors/authors_details_form.html"
     # TODO: maybe refresh the author list
-    return render_template(template, author=author_details)
+    return render_template(template, author=author_details, author_id=author_id)
 
 # delete author
 @app.route("/authors/<author_id>", methods=["DELETE"])
@@ -56,7 +56,7 @@ def author_delete(author_id: str):
 # search authors
 @app.route('/search-authors', methods=['GET'])
 def search_authors():
-    query = request.args.get('query', '').strip()
+    query = request.args.get('query', '').strip()   # Get the search term from the query parameter
     if query:
         authors = author.filterByName(query)
     else:
@@ -71,10 +71,9 @@ def new_author_details():
 @app.route("/authors", methods=["POST"]) # publish new author
 def save_author_details():
     data = request.form
-    AuthorID = author.generate_author_id(data.get('Name'),data.get('InstitutionName')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
+    author_id = author.generate_author_id(data.get('Name'), data.get('Url'), data.get('ORCID'), data.get('InstitutionName')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
 
-    new_author = author.AuthorCreate(
-        AuthorID=AuthorID,
+    new_author = author.AuthorForm(
         Name=data.get('Name'),
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
@@ -82,46 +81,40 @@ def save_author_details():
     )
 
     try:
-        author.create(new_author)
+        author.create(author_id, new_author)
         response = make_response()
         print("NEW AUTHOR ADDED")
         print(new_author)
     except Exception as e:
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning=warning_message))
         print(e)
         print("ERROR CREATING AUTHOR")
         print(new_author)
-        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
         
     response.headers["HX-Trigger"] = "refreshAuthorList"
     return response    
 
-# update author TODO: put all in one query!
+# update author
 @app.route("/authors/<author_id>", methods=["POST"])
 def author_update(author_id: str):
     data = request.form
-    InstitutionID = author.get_institution_id(data.get('InstitutionName'))
 
-    new_author = author.AuthorUpdate(
-        AuthorID=author_id,
+    new_author = author.AuthorForm(
         Name=data.get('Name'),
         Url=data.get('Url'),
         ORCID=data.get('ORCID'),
-        InstitutionID=InstitutionID,
         InstitutionName=data.get('InstitutionName')
     )
 
-    if InstitutionID is None:
-        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
-        response.headers["HX-Trigger"] = "refreshAuthorList"
-        return response
-    
     try:
         author.update(author_id, new_author)
-        print("UPDATE")
+        print("UPDATE AUTHOR")
         response = make_response(author_details(author_id))
-    except Exception:
+    except Exception as e:
         print(new_author)
-        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning='ERROR'))
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("authors/authors_details_form.html", author=new_author, author_id=author_id, warning=warning_message))
     
     response.headers["HX-Trigger"] = "refreshAuthorList"
     return response
@@ -135,6 +128,8 @@ def institutions():
     list_institutions = institution.list_all()
     return render_template("institutions/institutions.html", institutions=list_institutions)
 
+
+# list institutions
 @app.route("/institutions-list", methods=["GET"])
 def institutions_list():
     institutions = institution.list_all()
@@ -145,35 +140,37 @@ def institutions_list_by_author_count():
     institutions = institution.list_all_by_author_count()
     return render_template("institutions/institutions_list.html", institutions=institutions)
 
+# show or edit specific institution
 @app.route("/institutions/<institution_id>", methods=["GET"])
 def institution_details(institution_id: str):
     institution_details = institution.read(institution_id)
     template = "institutions/institution_details_view.html" if not request.args.get("edit") else "institutions/institutions_details_form.html"
-    return render_template(template, institution=institution_details)
+    return render_template(template, institution=institution_details, institution_id=institution_id)
 
-@app.route('/search-institutions', methods=['GET'])
-def search_institutions():
-    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
-    
-    if query:
-        institutions = institution.filterByName(query)
-    else:
-        institutions = institution.list_all()    
-    return render_template('institutions/institutions_list.html', institutions=institutions)
-
+# delete institution
 @app.route("/institutions/<institution_id>", methods=["DELETE"])
 def institution_delete(institution_id: str):
     try:
         print(f"Deleting institution {institution_id}")
         institution.delete(institution_id)
         response = make_response()
-        response.headers["HX-Trigger"] = "refreshInstitutionList"
+        response.headers["HX-Trigger"] = "refreshInstitutionList" # refresh the institution list
         return response
     except Exception as ex:
         r = make_response(render_template_string(f"{ex}"))
-        print(ex)
         return r
 
+# search institutions
+@app.route('/search-institutions', methods=['GET'])
+def search_institutions():
+    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
+    if query:
+        institutions = institution.filterByName(query)
+    else:
+        institutions = institution.list_all()    
+    return render_template('institutions/institutions_list.html', institutions=institutions)
+
+# form to create new institution
 @app.route("/institutions/new", methods=["GET"])
 def new_institution_details():
     return render_template("institutions/institutions_details_form.html")
@@ -181,47 +178,50 @@ def new_institution_details():
 @app.route("/institutions", methods=["POST"])
 def save_institution_details():
     data = request.form
-    InstitutionID = institution.generate_institution_id(data.get('Name'),data.get('Address')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
-    new_institution = institution.Institution(
-        InstitutionID=InstitutionID,
+    institution_id = institution.generate_institution_id(data.get('Name'),data.get('Address')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
+    
+    new_institution = institution.InstitutionForm(
         Name=data.get('Name'),
-        Address=data.get('Address'),
-        AuthorsCount=0
+        Address=data.get('Address')
     )
 
     try:
-        institution.create(new_institution)
+        institution.create(institution_id, new_institution)
         response = make_response()
         print("NEW INSTITUTION ADDED")
-    except Exception:
+        print(new_institution)
+    except Exception as e:
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning=warning_message))
+        print(e)
         print("ERROR CREATING INSTITUTION")
-        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
+        print(new_institution)
 
-    print(new_institution)
     response.headers["HX-Trigger"] = "refreshInstitutionList"
     return response
 
+# update institution
 @app.route("/institutions/<institution_id>", methods=["POST"])
 def institution_update(institution_id: str):
     data = request.form
-    new_institution = institution.InstitutionSimple(
-        InstitutionID=institution_id,
+
+    new_institution = institution.InstitutionForm(
         Name=data.get('Name'),
         Address=data.get('Address')
     )
     
     try:
         institution.update(institution_id, new_institution)
-        response = make_response(institution_details(institution_id))
         print("UPDATED INSTITUTION")
-    except Exception:
-        print("ERROR UPDATING INSTITUTION")
-        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning='ERROR'))
+        response = make_response(institution_details(institution_id))
+    except Exception as e:
+        print("ERROR UPDATING INSTITUTION " + str(e.args[1]))
+        print(new_institution)
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, institution_id=institution_id, warning=warning_message))
     
     response.headers["HX-Trigger"] = "refreshInstitutionList"
     return response
-
-
 
 # Testing purpose
 @app.route('/search-prefix', methods=['GET'])

@@ -1,83 +1,32 @@
--- # Authors with None are not considered in the list
 
--- Author --
-DROP FUNCTION IF EXISTS ListAllAuthors;
+--################################# Author #################################--
+-- indexes
+IF IndexProperty(Object_ID('Author'), 'IDX_Author_Name', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Author_Name ON Author;
+IF IndexProperty(Object_ID('Author'), 'IDX_Author_ArticlesCount', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Author_ArticlesCount ON Author;
+-- listing
 DROP PROCEDURE IF EXISTS OrderByAuthorName;
 DROP PROCEDURE IF EXISTS OrderBySearchAuthorName;
+DROP PROCEDURE IF EXISTS OrderByArticlesCount;  
+-- details
 DROP PROCEDURE IF EXISTS ListAuthorDetails;
 DROP PROCEDURE IF EXISTS GetInstitutionIDByName;
+-- delete/update/create
 DROP PROCEDURE IF EXISTS DeleteAuthor;
-DROP PROCEDURE IF EXISTS OrderByArticlesCount;  
-DROP PROCEDURE IF EXISTS CreateNewAuthor;
-DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Insert;
-DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Delete;
-DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Update;
-DROP INDEX IDX_Author_Name ON Author;
-DROP INDEX IDX_Author_ArticlesCount ON Author;
+DROP PROCEDURE IF EXISTS ValidateAuthorName;
+DROP PROCEDURE IF EXISTS UpdateAuthor;
+DROP PROCEDURE IF EXISTS CreateAuthor;
+--------------------------------------------------------------------------------
 
--- Institution --
-DROP FUNCTION IF EXISTS ListAllInstitutions;
-DROP PROCEDURE IF EXISTS OrderByInstitutionName;
-DROP PROCEDURE IF EXISTS OrderBySearchInstitutionName;
-DROP PROCEDURE IF EXISTS ListAllInstitutionsDetails;
-DROP PROCEDURE IF EXISTS DeleteInstitutionAndUpdateAuthors;
-DROP PROCEDURE IF EXISTS OrderByAuthorsCount;
-DROP TRIGGER IF EXISTS trg_UpdateAuthorsCount_Insert;
-DROP TRIGGER IF EXISTS trg_UpdateAuthorsCount_Delete;
-DROP TRIGGER IF EXISTS trg_UpdateAuthorsCount_Update;
-DROP INDEX IDX_Institution_Name ON Institution;
-DROP INDEX IDX_Institution_AuthorsCount ON Institution;
---------------------------- Author ---------------------------
-
--- Adicionar índice não-clusterizado para a coluna Name para acelerar a pesquisa
+-- indexes
 CREATE NONCLUSTERED INDEX IDX_Author_Name
-ON Author (Name);
+ON Author ([Name]);
 
---- Index ArticlesCount
 CREATE NONCLUSTERED INDEX IDX_Author_ArticlesCount
 ON Author (ArticlesCount);
 
-CREATE PROCEDURE ListAuthorDetails
-    @AuthorID VARCHAR(10)
-AS
-BEGIN
-    SELECT 
-        Author.AuthorID, 
-        Author.Name, 
-        Author.[Url], 
-        Author.ORCID, 
-        Author.InstitutionID,
-        Institution.Name AS InstitutionName,
-        Author.ArticlesCount
-    FROM Author
-    LEFT JOIN Institution ON Institution.InstitutionID = Author.InstitutionID
-    WHERE Author.AuthorID = @AuthorID
-
-    -- Segundo conjunto de resultados: Lista de Artigos
-    SELECT 
-        Article.Title 
-    FROM Wrote_by 
-    INNER JOIN Article ON Wrote_by.ArticleID = Article.ArticleID
-    WHERE Wrote_by.AuthorID = @AuthorID
-END;
-
-
-CREATE FUNCTION ListAllAuthors()
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT 
-        Author.AuthorID, 
-        Author.Name, 
-        Author.[Url], 
-        Institution.Name AS InstitutionName,
-        Author.ArticlesCount
-    FROM Author 
-    LEFT JOIN Institution ON Institution.InstitutionID = Author.InstitutionID
-);
-
-
+-- listing
 CREATE PROCEDURE OrderByAuthorName 
 AS
 BEGIN
@@ -85,7 +34,6 @@ BEGIN
     FROM ListAllAuthors()
     ORDER BY [Name]
 END;
-
 
 CREATE PROCEDURE OrderByArticlesCount 
 AS
@@ -103,34 +51,27 @@ BEGIN
     ORDER BY [Name]
 END;
 
-
--- Delele Author with AuthorID and Entries in Wrote_by
-CREATE PROCEDURE DeleteAuthor
+-- details
+CREATE PROCEDURE ListAuthorDetails
     @AuthorID VARCHAR(10)
 AS
 BEGIN
-    BEGIN TRANSACTION
+    SELECT 
+        Author.Name, 
+        Author.[Url], 
+        Author.ORCID, 
+        Institution.Name AS InstitutionName,
+        Author.ArticlesCount
+    FROM Author
+    LEFT JOIN Institution ON Institution.InstitutionID = Author.InstitutionID
+    WHERE Author.AuthorID = @AuthorID
 
-    BEGIN TRY
-        -- Remover os registros relacionados na tabela Wrote_by
-        DELETE FROM Wrote_by
-        WHERE AuthorID = @AuthorID
-
-        -- Remover o autor
-        DELETE FROM Author
-        WHERE AuthorID = @AuthorID
-
-        -- Commit da transação
-        COMMIT TRANSACTION
-    END TRY
-    BEGIN CATCH
-        -- Rollback da transação em caso de erro
-        ROLLBACK TRANSACTION
-        -- Rethrow o erro
-        THROW
-    END CATCH
+    -- list of articles
+    SELECT Article.Title 
+    FROM Wrote_by 
+    INNER JOIN Article ON Wrote_by.ArticleID = Article.ArticleID
+    WHERE Wrote_by.AuthorID = @AuthorID
 END;
-
 
 CREATE PROCEDURE GetInstitutionIDByName
     @InstitutionName VARCHAR(300),
@@ -142,8 +83,60 @@ BEGIN
     WHERE [Name] = @InstitutionName
 END;
 
-CREATE PROCEDURE CreateNewAuthor
-    -- Arguments
+-- delete/update/create
+CREATE PROCEDURE DeleteAuthor
+    @AuthorID VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- Start a transaction
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        -- Remove related records in the Wrote_by table
+        DELETE FROM Wrote_by
+        WHERE AuthorID = @AuthorID
+
+        -- Remove the author
+        DELETE FROM Author
+        WHERE AuthorID = @AuthorID
+
+        -- Commit the transaction
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        -- Rollback the transaction in case of an error
+        ROLLBACK TRANSACTION
+
+        -- Rethrow the error
+        THROW
+    END CATCH
+END;
+
+CREATE PROCEDURE ValidateAuthorName
+    @Name NVARCHAR(50),
+    @InstitutionName VARCHAR(300),
+    @InstID VARCHAR(10) OUTPUT
+AS
+BEGIN
+    IF @Name IS NULL
+    BEGIN
+        RAISERROR ('Author name cannot be empty.', 16, 1)
+        RETURN
+    END
+
+    EXEC GetInstitutionIDByName @InstitutionName, @InstitutionID = @InstID OUTPUT
+
+    -- Check if InstitutionID is NULL and InstitutionName is not empty
+    IF @InstID is NULL AND @InstitutionName IS NOT NULL
+    BEGIN
+        RAISERROR ('Institution %s not found.', 16, 1, @InstitutionName)
+        RETURN
+    END
+END;
+
+CREATE PROCEDURE UpdateAuthor
     @AuthorID VARCHAR(10),
     @Name NVARCHAR(50),
     @Url VARCHAR(100),
@@ -153,109 +146,73 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    DECLARE @InstitutionID VARCHAR(10)
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @Url = NULLIF(@Url, '')
+    SET @ORCID = NULLIF(@ORCID, '')
+    SET @InstitutionName = NULLIF(@InstitutionName, '')
 
-    -- Call GetInstitutionIDByName Procedure
-    EXEC GetInstitutionIDByName @InstitutionName, @InstitutionID OUTPUT
+    DECLARE @InstID VARCHAR(10)
+    EXEC ValidateAuthorName @Name, @InstitutionName, @InstID OUTPUT -- exception may be thrown
 
-    -- Print "InstitutionID: " InstitutionID
-    -- RAISERROR ('InstitutionID: %s', 16, 1, @InstitutionID)
-    -- RETURN
+    UPDATE Author
+    SET [Name] = @Name, [Url] = @Url, ORCID = @ORCID, InstitutionID = @InstID
+    WHERE AuthorID = @AuthorID
+    
+END;
 
-    -- Check if InstitutionID is NULL and InstitutionName is not empty
-    IF @InstitutionID is NULL AND @InstitutionName != ''
-    BEGIN
-        RAISERROR ('Institution %s not found.', 16, 1, @InstitutionID)
-        RETURN
-    END
+CREATE PROCEDURE CreateAuthor
+    @AuthorID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Url VARCHAR(100),
+    @ORCID VARCHAR(19),
+    @InstitutionName VARCHAR(300)
+AS
+BEGIN
+    SET NOCOUNT ON
 
-    -- Insert Author
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @Url = NULLIF(@Url, '')
+    SET @ORCID = NULLIF(@ORCID, '')
+    SET @InstitutionName = NULLIF(@InstitutionName, '')
+
+    DECLARE @InstID VARCHAR(10)
+    EXEC ValidateAuthorName @Name, @InstitutionName, @InstID OUTPUT -- exception may be thrown
+
     INSERT INTO Author (AuthorID, [Name], [Url], ORCID, InstitutionID, ArticlesCount) 
-    VALUES (@AuthorID, @Name, @Url, @ORCID, @InstitutionID, 0)
+    VALUES (@AuthorID, @Name, @Url, @ORCID, @InstID, 0)
 END;
 
 
 
--- Trigger para atualizar ArticlesCount após inserção em Wrote_by
-CREATE TRIGGER trg_UpdateArticlesCount_Insert
-ON Wrote_by
-AFTER INSERT
-AS
-BEGIN
-    UPDATE Author
-    SET ArticlesCount = (SELECT COUNT(*) FROM Wrote_by WHERE Wrote_by.AuthorID = Author.AuthorID)
-    FROM Author
-    INNER JOIN inserted i ON Author.AuthorID = i.AuthorID
-END;
+--################################# Institution #################################--
+-- indexes
+IF IndexProperty(Object_ID('Institution'), 'IDX_Institution_Name', 'IndexId') IS NOT NULL 
+    DROP INDEX IDX_Institution_Name ON Institution;
+IF IndexProperty(Object_ID('Institution'), 'IDX_Institution_AuthorsCount', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Institution_AuthorsCount ON Institution;
+-- listing
+DROP PROCEDURE IF EXISTS OrderByInstitutionName;
+DROP PROCEDURE IF EXISTS OrderBySearchInstitutionName;
+DROP PROCEDURE IF EXISTS OrderByAuthorsCount;
+-- details
+DROP PROCEDURE IF EXISTS ListInstitutionDetails;
+-- delete/update/create
+DROP PROCEDURE IF EXISTS DeleteInstitution;
+DROP PROCEDURE IF EXISTS ValidateInstitutionName;
+DROP PROCEDURE IF EXISTS UpdateInstitution;
+DROP PROCEDURE IF EXISTS CreateInstitution;
+--------------------------------------------------------------------------------
 
--- Trigger para atualizar ArticlesCount após deleção de Wrote_by
-CREATE TRIGGER trg_UpdateArticlesCount_Delete
-ON Wrote_by
-AFTER DELETE
-AS
-BEGIN
-    UPDATE Author
-    SET ArticlesCount = (SELECT COUNT(*) FROM Wrote_by WHERE Wrote_by.AuthorID = Author.AuthorID)
-    FROM Author
-    INNER JOIN deleted d ON Author.AuthorID = d.AuthorID
-END;
-
--- Trigger para atualizar ArticlesCount após atualização de Wrote_by
-CREATE TRIGGER trg_UpdateArticlesCount_Update
-ON Wrote_by
-AFTER UPDATE
-AS
-BEGIN
-    UPDATE Author
-    SET ArticlesCount = (SELECT COUNT(*) FROM Wrote_by WHERE Wrote_by.AuthorID = Author.AuthorID)
-    FROM Author
-    INNER JOIN inserted i ON Author.AuthorID = i.AuthorID
-END;
-
---------------------------- Institution ---------------------------
--- Adicionar índice não-clusterizado para a coluna Name para acelerar a pesquisa
+-- indexes
 CREATE NONCLUSTERED INDEX IDX_Institution_Name
 ON Institution (Name);
 
---- Index AuthorsCount
 CREATE NONCLUSTERED INDEX IDX_Institution_AuthorsCount
 ON Institution (AuthorsCount);
 
-CREATE PROCEDURE ListAllInstitutionsDetails
-    @InstitutionID VARCHAR(10)
-AS
-BEGIN
-    SELECT 
-        Institution.InstitutionID, 
-        Institution.Name, 
-        Institution.Address,
-        Institution.AuthorsCount
-    FROM Institution
-    WHERE Institution.InstitutionID = @InstitutionID
-
-    -- Segundo conjunto de resultados: Lista de Autores
-    SELECT 
-        Author.Name 
-    FROM 
-        Author
-    WHERE 
-        Author.InstitutionID = @InstitutionID
-END;
-
-CREATE FUNCTION ListAllInstitutions()
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT 
-        Institution.InstitutionID, 
-        Institution.Name, 
-        Institution.Address, 
-        Institution.AuthorsCount
-    FROM Institution 
-);
-
-
+-- listing
 CREATE PROCEDURE OrderByInstitutionName 
 AS
 BEGIN
@@ -272,80 +229,113 @@ BEGIN
     ORDER BY AuthorsCount DESC
 END;    
 
-
 CREATE PROCEDURE OrderBySearchInstitutionName (@InstitutionName NVARCHAR(50))
-AS
+AS 
 BEGIN
     SELECT * FROM ListAllInstitutions() 
     WHERE [Name] LIKE '%' + @InstitutionName + '%'
     ORDER BY [Name]
 END;
 
-
-
-CREATE PROCEDURE DeleteInstitutionAndUpdateAuthors
+-- details
+CREATE PROCEDURE ListInstitutionDetails
     @InstitutionID VARCHAR(10)
 AS
 BEGIN
-    -- Iniciar uma transação
+    SELECT 
+        Institution.Name, 
+        Institution.Address,
+        Institution.AuthorsCount
+    FROM Institution
+    WHERE Institution.InstitutionID = @InstitutionID
+
+    -- list of authors
+    SELECT Author.Name 
+    FROM Author
+    WHERE Author.InstitutionID = @InstitutionID
+END;
+
+-- delete/update/create
+CREATE PROCEDURE DeleteInstitution
+    @InstitutionID VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- start transaction
     BEGIN TRANSACTION
 
     BEGIN TRY
-        -- Definir InstitutionID como NULL para autores que referenciam esta instituição
+        -- Set InstitutionID to NULL in other tables
         UPDATE Author
         SET InstitutionID = NULL
         WHERE InstitutionID = @InstitutionID
 
-        -- Deletar a instituição
+        UPDATE [User]
+        SET InstitutionID = NULL
+        WHERE InstitutionID = @InstitutionID
+
+        -- Delete the institution
         DELETE FROM Institution
         WHERE InstitutionID = @InstitutionID
 
-        -- Commit da transação
+        -- Commit the transaction
         COMMIT TRANSACTION
     END TRY
     BEGIN CATCH
-        -- Rollback da transação em caso de erro
+        -- Rollback the transaction in case of an error
         ROLLBACK TRANSACTION
 
-        -- Lançar o erro capturado
+        -- Rethrow the error
         THROW
     END CATCH
 END;
 
-
--- Trigger para atualizar AuthorsCount após inserção em Author
-CREATE TRIGGER trg_UpdateAuthorsCount_Insert
-ON Author
-AFTER INSERT
+CREATE PROCEDURE ValidateInstitutionName
+    @Name NVARCHAR(50)
 AS
 BEGIN
-    UPDATE Institution
-    SET AuthorsCount = (SELECT COUNT(*) FROM Author WHERE Author.InstitutionID = Institution.InstitutionID)
-    FROM Institution
-    INNER JOIN inserted i ON Institution.InstitutionID = i.InstitutionID
+    IF @Name IS NULL
+    BEGIN
+        RAISERROR ('Institution name cannot be empty.', 16, 1)
+        RETURN
+    END
 END;
 
--- Trigger para atualizar AuthorsCount após deleção em Author
-CREATE TRIGGER trg_UpdateAuthorsCount_Delete
-ON Author
-AFTER DELETE
+CREATE PROCEDURE UpdateInstitution
+    @InstitutionID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Address VARCHAR(100)
 AS
 BEGIN
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @Address = NULLIF(@Address, '')
+
+    EXEC ValidateInstitutionName @Name -- exception may be thrown
+
     UPDATE Institution
-    SET AuthorsCount = (SELECT COUNT(*) FROM Author WHERE Author.InstitutionID = Institution.InstitutionID)
-    FROM Institution
-    INNER JOIN deleted i ON Institution.InstitutionID = i.InstitutionID
+    SET [Name] = @Name, [Address] = @Address
+    WHERE InstitutionID = @InstitutionID
 END;
 
-
--- Trigger para atualizar AuthorsCount após atualização em Author
-CREATE TRIGGER trg_UpdateAuthorsCount_Update
-ON Author
-AFTER UPDATE
+CREATE PROCEDURE CreateInstitution
+    @InstitutionID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Address VARCHAR(100)
 AS
 BEGIN
-    UPDATE Institution
-    SET AuthorsCount = (SELECT COUNT(*) FROM Author WHERE Author.InstitutionID = Institution.InstitutionID)
-    FROM Institution
-    INNER JOIN inserted i ON Institution.InstitutionID = i.InstitutionID
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @Address = NULLIF(@Address, '')
+
+    EXEC ValidateInstitutionName @Name -- exception may be thrown
+
+    INSERT INTO Institution (InstitutionID, [Name], [Address], AuthorsCount) 
+    VALUES (@InstitutionID, @Name, @Address, 0)
 END;
+

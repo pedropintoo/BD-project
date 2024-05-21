@@ -1,7 +1,7 @@
 <div id="institutionsDetails1" class="container mt-4">
     <form class="institutions-details-form"
           hx-target="#content" hx-swap="innerHTML"
-          hx-post="/institutions{% if institution is defined %}/{{ institution.InstitutionID }}{% endif %}">
+          hx-post="/institutions{% if institution_id is defined %}/{{ institution_id }}{% endif %}">
         
         <div class="mb-3">
             <label for="Name" class="form-label">Name:</label>
@@ -17,8 +17,8 @@
                 
         <div class="d-flex align-items-center">
         <button type="submit" class="btn btn-primary me-2">Save</button>
-        {% if institution is defined %}
-            <button type="button" class="btn btn-secondary me-2" hx-get="/institutions/{{ institution.InstitutionID }}">Cancel</button>
+        {% if institution_id is defined %}
+            <button type="button" class="btn btn-secondary me-2" hx-get="/institutions{% if institution_id is defined %}/{{ institution_id }}{% endif %}">Cancel</button>
         {% endif %}
         {% if warning %}
         <p class="text-danger fw-bold mb-0 ms-2">{{ warning }}</p>
