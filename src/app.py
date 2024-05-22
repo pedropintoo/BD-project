@@ -36,7 +36,7 @@ def authors_list_by_article_count():
 @app.route("/authors/<author_id>", methods=["GET"])
 def author_details(author_id: str):
     author_details = author.read(author_id)
-    template = "authors/author_details_view.html" if not request.args.get("edit") else "authors/authors_details_form.html"
+    template = "authors/author_details_view.html" if not request.args.get("edit") else "authors/author_details_form.html"
     return render_template(template, author=author_details, author_id=author_id)
 
 # delete author
@@ -65,7 +65,7 @@ def search_authors():
 # form to create new author
 @app.route("/authors/new", methods=["GET"])
 def new_author_details():
-    return render_template("authors/authors_details_form.html")
+    return render_template("authors/author_details_form.html")
 
 @app.route("/authors", methods=["POST"]) # publish new author
 def save_author_details():
@@ -86,7 +86,7 @@ def save_author_details():
         print(new_author)
     except Exception as e:
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("authors/authors_details_form.html", author=new_author, warning=warning_message))
+        response = make_response(render_template("authors/author_details_form.html", author=new_author, warning=warning_message))
         print(e)
         print("ERROR CREATING AUTHOR")
         print(new_author)
@@ -113,7 +113,7 @@ def author_update(author_id: str):
     except Exception as e:
         print(new_author)
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("authors/authors_details_form.html", author=new_author, author_id=author_id, warning=warning_message))
+        response = make_response(render_template("authors/author_details_form.html", author=new_author, author_id=author_id, warning=warning_message))
     
     response.headers["HX-Trigger"] = "refreshAuthorList"
     return response
@@ -143,7 +143,7 @@ def institutions_list_by_author_count():
 @app.route("/institutions/<institution_id>", methods=["GET"])
 def institution_details(institution_id: str):
     institution_details = institution.read(institution_id)
-    template = "institutions/institution_details_view.html" if not request.args.get("edit") else "institutions/institutions_details_form.html"
+    template = "institutions/institution_details_view.html" if not request.args.get("edit") else "institutions/institution_details_form.html"
     return render_template(template, institution=institution_details, institution_id=institution_id)
 
 # delete institution
@@ -172,7 +172,7 @@ def search_institutions():
 # form to create new institution
 @app.route("/institutions/new", methods=["GET"])
 def new_institution_details():
-    return render_template("institutions/institutions_details_form.html")
+    return render_template("institutions/institution_details_form.html")
 
 @app.route("/institutions", methods=["POST"])
 def save_institution_details():
@@ -191,7 +191,7 @@ def save_institution_details():
         print(new_institution)
     except Exception as e:
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, warning=warning_message))
+        response = make_response(render_template("institutions/institution_details_form.html", institution=new_institution, warning=warning_message))
         print(e)
         print("ERROR CREATING INSTITUTION")
         print(new_institution)
@@ -217,7 +217,7 @@ def institution_update(institution_id: str):
         print("ERROR UPDATING INSTITUTION " + str(e.args[1]))
         print(new_institution)
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("institutions/institutions_details_form.html", institution=new_institution, institution_id=institution_id, warning=warning_message))
+        response = make_response(render_template("institutions/institution_details_form.html", institution=new_institution, institution_id=institution_id, warning=warning_message))
     
     response.headers["HX-Trigger"] = "refreshInstitutionList"
     return response
@@ -291,7 +291,7 @@ def topics_list_by_article_count():
 @app.route("/topics/<topic_id>", methods=["GET"])
 def topics_details(topic_id: str):
     topic_details = topic.read(topic_id)
-    template = "topics/topic_details_view.html" if not request.args.get("edit") else "topics/topics_details_form.html"
+    template = "topics/topic_details_view.html" if not request.args.get("edit") else "topics/topic_details_form.html"
     return render_template(template, topic=topic_details, topic_id=topic_id)
 
 # delete topic
@@ -321,7 +321,7 @@ def search_topics():
 # form to create new topic
 @app.route("/topics/new", methods=["GET"])
 def new_topic_details():
-    return render_template("topics/topics_details_form.html")
+    return render_template("topics/topic_details_form.html")
 
 @app.route("/topics", methods=["POST"]) # publish new topic
 def save_topic_details():
@@ -340,7 +340,7 @@ def save_topic_details():
         print(new_topic)
     except Exception as e:
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("topics/topics_details_form.html", topic=new_topic, warning=warning_message))
+        response = make_response(render_template("topics/topic_details_form.html", topic=new_topic, warning=warning_message))
         print(e)
         print("ERROR CREATING TOPIC")
         print(new_topic)
@@ -366,7 +366,7 @@ def topic_update(topic_id: str):
         print("ERROR UPDATING TOPIC " + str(e.args[1]))
         print(new_topic)
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("topics/topics_details_form.html", topic=new_topic, topic_id=topic_id, warning=warning_message))
+        response = make_response(render_template("topics/topic_details_form.html", topic=new_topic, topic_id=topic_id, warning=warning_message))
     
     response.headers["HX-Trigger"] = "refreshTopicList"
     return response    
@@ -395,7 +395,7 @@ def journals_list_by_volume_count():
 @app.route("/journals/<journal_id>", methods=["GET"])
 def journal_details(journal_id: str):
     journal_details = journal.read(journal_id)
-    template = "journals/journal_details_view.html" if not request.args.get("edit") else "journals/journals_details_form.html"
+    template = "journals/journal_details_view.html" if not request.args.get("edit") else "journals/journal_details_form.html"
     return render_template(template, journal=journal_details, journal_id=journal_id)
 
 # delete journal
@@ -425,7 +425,7 @@ def search_journals():
 # form to create new journal
 @app.route("/journals/new", methods=["GET"])
 def new_journal_details():
-    return render_template("journals/journals_details_form.html")
+    return render_template("journals/journal_details_form.html")
 
 @app.route("/journals", methods=["POST"]) # publish new journal
 def save_journal_details():
@@ -447,7 +447,7 @@ def save_journal_details():
         print(new_journal)
     except Exception as e:
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("journals/journals_details_form.html", journal=new_journal, warning=warning_message))
+        response = make_response(render_template("journals/journal_details_form.html", journal=new_journal, warning=warning_message))
         print(e)
         print("ERROR CREATING JOURNAL")
         print(new_journal)
@@ -476,7 +476,7 @@ def journal_update(journal_id: str):
         print("ERROR UPDATING JOURNAL " + str(e.args[1]))
         print(new_journal)
         warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
-        response = make_response(render_template("journals/journals_details_form.html", journal=new_journal, journal_id=journal_id, warning=warning_message))
+        response = make_response(render_template("journals/journal_details_form.html", journal=new_journal, journal_id=journal_id, warning=warning_message))
 
     response.headers["HX-Trigger"] = "refreshJournalList"
     return response    

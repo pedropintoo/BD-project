@@ -1,0 +1,41 @@
+<div id="authorsDetails1" class="container mt-4">
+    <form class="authors-details-form"
+          hx-target="#content" hx-swap="innerHTML"
+          hx-post="/authors{% if author_id is defined %}/{{ author_id }}{% endif %}">
+        
+        <div class="mb-3">
+            <label for="Name" class="form-label">Name:</label>
+            <input type="text" class="form-control" id="Name" name="Name"
+                   value="{% if author is defined %}{{ author.Name }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="Url" class="form-label">URL:</label>
+            <input type="text" class="form-control" id="Url" name="Url"
+                   value="{% if author is defined %}{{ author.Url }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="ORCID" class="form-label">ORCID:</label>
+            <input type="text" class="form-control" id="ORCID" name="ORCID"
+                   value="{% if author is defined %}{{ author.ORCID }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="InstitutionName" class="form-label">Institution Name:</label>
+            <input type="text" class="form-control" id="InstitutionName" name="InstitutionName"
+                   value="{% if author is defined %}{{ author.InstitutionName }}{% endif %}">
+        </div>
+
+       
+        <div class="d-flex align-items-center">
+        <button type="submit" class="btn btn-primary me-2">Save</button>
+        {% if author_id is defined %}
+            <button type="button" class="btn btn-secondary me-2" hx-get="/authors{% if author_id is defined %}/{{ author_id }}{% endif %}">Cancel</button>
+        {% endif %}
+        {% if warning %}
+        <p class="text-danger fw-bold mb-0 ms-2">{{ warning }}</p>
+        {% endif %}
+       </div>
+    </form>
+</div>

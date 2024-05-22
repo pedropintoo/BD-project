@@ -461,7 +461,7 @@ END;
 -- listing
 DROP PROCEDURE IF EXISTS OrderByJournalName;
 DROP PROCEDURE IF EXISTS OrderBySearchJournalName;
-DROP PROCEDURE IF EXISTS OrderByVolumesCount;
+DROP PROCEDURE IF EXISTS OrderByArticlesCount;
 -- details
 DROP PROCEDURE IF EXISTS ListJournalDetails;
 DROP PROCEDURE IF EXISTS GetJournalIDByName;

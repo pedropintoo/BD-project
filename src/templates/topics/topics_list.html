@@ -7,11 +7,11 @@
             </div>
         </div>
         <div class="p-2">
-            <button class="btn btn-primary edit-primary" hx-target="#content" hx-get="/topics/{{ topic_id }}?edit=true">Edit</button>
+            <button class="btn btn-primary edit-primary" hx-target="#content" hx-get="/topics/{{ topic.TopicID}}?edit=true">Edit</button>
             <button class="btn btn-danger delete-button"
-                    hx-delete="/topics/{{ topic_id }}"
+                    hx-delete="/topics/{{ topic.TopicID }}"
                     hx-confirm="Are you sure?">Delete</button>
-                    <button class="btn btn-success edit-primary" hx-target="#content" hx-get="/topics/{{ topic_id }}">See More</button>        
+                    <button class="btn btn-success edit-primary" hx-target="#content" hx-get="/topics/{{ topic.TopicID }}">See More</button>        
                     
         </div>
     </div>   
