@@ -430,6 +430,7 @@ def insert_authors_and_institutions(buffer):
 
     # Insert paper data
     if len(buffer_articles) > 0:
+        # TODO: return authors and wrote_by!!!
         insert_articles_and_topics_and_journalVersions(buffer_articles[0])
 
     # Insert author data
@@ -471,7 +472,7 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             article_topics.append(topic.TopicID)
             topics.append(topic)
 
-            
+        print(article_data) 
 
         journal_info = article_data["journal"]
         if journal_info == "" or journal_info is None:
