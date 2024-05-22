@@ -35,7 +35,7 @@ CREATE PROCEDURE OrderBySearchAuthorName (@AuthorName NVARCHAR(50))
 AS
 BEGIN
     SELECT * FROM ListAllAuthors() 
-    WHERE [Name] LIKE '%' + @AuthorName + '%'
+    WHERE [Name] LIKE @AuthorName + '%'
     ORDER BY [Name]
 END;
 
@@ -209,7 +209,7 @@ CREATE PROCEDURE OrderBySearchInstitutionName (@InstitutionName NVARCHAR(50))
 AS 
 BEGIN
     SELECT * FROM ListAllInstitutions() 
-    WHERE [Name] LIKE '%' + @InstitutionName + '%'
+    WHERE [Name] LIKE @InstitutionName + '%'
     ORDER BY [Name]
 END;
 
@@ -315,3 +315,66 @@ BEGIN
     VALUES (@InstitutionID, @Name, @Address, 0)
 END;
 
+
+--################################# Topic #################################--
+-- listing
+DROP PROCEDURE IF EXISTS OrderByTopicName;
+DROP PROCEDURE IF EXISTS OrderBySearchTopicName;
+DROP PROCEDURE IF EXISTS OrderByArticlesCount;
+-- details
+DROP PROCEDURE IF EXISTS ListTopicDetails;
+-- delete/update/create
+DROP PROCEDURE IF EXISTS DeleteTopic;
+DROP PROCEDURE IF EXISTS ValidateTopicName;
+DROP PROCEDURE IF EXISTS UpdateTopic;
+DROP PROCEDURE IF EXISTS CreateTopic;
+--------------------------------------------------------------------------------
+
+-- -- listing
+-- CREATE PROCEDURE OrderByTopicName
+-- AS
+-- BEGIN
+--     SELECT * 
+--     FROM ListAllTopics()
+--     ORDER BY [Name]
+-- END;
+
+-- CREATE PROCEDURE OrderByArticlesCount
+-- AS
+-- BEGIN
+--     SELECT * 
+--     FROM ListAllTopics()
+--     ORDER BY ArticlesCount DESC
+-- END;
+
+-- CREATE PROCEDURE OrderBySearchTopicName (@TopicName NVARCHAR(50))
+-- AS
+-- BEGIN
+--     SELECT * FROM ListAllTopics() 
+--     WHERE [Name] LIKE @TopicName + '%'
+--     ORDER BY [Name]
+-- END;
+
+-- -- details
+-- CREATE PROCEDURE ListTopicDetails
+--     @TopicID VARCHAR(10)
+-- AS
+-- BEGIN
+--     SELECT 
+--         Topic.Name, 
+--         Topic.Description,
+--         Topic.ArticlesCount
+--     FROM Topic
+--     WHERE Topic.TopicID = @TopicID
+
+--     -- Count users who are interested in this topic
+--     SELECT COUNT(*) AS UsersCount
+--     FROM Interested_in
+--     WHERE TopicID = @TopicID
+--     GROUP BY TopicID
+
+--     -- list of articles
+--     SELECT Article.Title 
+--     FROM Article
+--     WHERE Article.TopicID = @TopicID
+-- END;
