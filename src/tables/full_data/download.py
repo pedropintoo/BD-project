@@ -585,7 +585,7 @@ if __name__ == '__main__':
     buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))
     inc = 25
-    max = 200
+    max = 600
     for i in range(0, max, inc):
         insert_journals(buffer[i:i+inc])
         print("inserted [", i, ":", i+inc, "].")

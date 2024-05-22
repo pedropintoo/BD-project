@@ -1,10 +1,5 @@
 
 --################################# Author #################################--
--- indexes
-IF IndexProperty(Object_ID('Author'), 'IDX_Author_Name', 'IndexId') IS NOT NULL
-    DROP INDEX IDX_Author_Name ON Author;
-IF IndexProperty(Object_ID('Author'), 'IDX_Author_ArticlesCount', 'IndexId') IS NOT NULL
-    DROP INDEX IDX_Author_ArticlesCount ON Author;
 -- listing
 DROP PROCEDURE IF EXISTS OrderByAuthorName;
 DROP PROCEDURE IF EXISTS OrderBySearchAuthorName;
@@ -18,13 +13,6 @@ DROP PROCEDURE IF EXISTS ValidateAuthorName;
 DROP PROCEDURE IF EXISTS UpdateAuthor;
 DROP PROCEDURE IF EXISTS CreateAuthor;
 --------------------------------------------------------------------------------
-
--- indexes
-CREATE NONCLUSTERED INDEX IDX_Author_Name
-ON Author ([Name]);
-
-CREATE NONCLUSTERED INDEX IDX_Author_ArticlesCount
-ON Author (ArticlesCount);
 
 -- listing
 CREATE PROCEDURE OrderByAuthorName 
@@ -187,11 +175,6 @@ END;
 
 
 --################################# Institution #################################--
--- indexes
-IF IndexProperty(Object_ID('Institution'), 'IDX_Institution_Name', 'IndexId') IS NOT NULL 
-    DROP INDEX IDX_Institution_Name ON Institution;
-IF IndexProperty(Object_ID('Institution'), 'IDX_Institution_AuthorsCount', 'IndexId') IS NOT NULL
-    DROP INDEX IDX_Institution_AuthorsCount ON Institution;
 -- listing
 DROP PROCEDURE IF EXISTS OrderByInstitutionName;
 DROP PROCEDURE IF EXISTS OrderBySearchInstitutionName;
@@ -204,13 +187,6 @@ DROP PROCEDURE IF EXISTS ValidateInstitutionName;
 DROP PROCEDURE IF EXISTS UpdateInstitution;
 DROP PROCEDURE IF EXISTS CreateInstitution;
 --------------------------------------------------------------------------------
-
--- indexes
-CREATE NONCLUSTERED INDEX IDX_Institution_Name
-ON Institution (Name);
-
-CREATE NONCLUSTERED INDEX IDX_Institution_AuthorsCount
-ON Institution (AuthorsCount);
 
 -- listing
 CREATE PROCEDURE OrderByInstitutionName 

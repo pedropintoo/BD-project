@@ -17,6 +17,7 @@ def create_tables():
     scripts.extend(readScriptsFromFile("tables/create_procedures.sql"))
     scripts.extend(readScriptsFromFile("tables/create_triggers.sql"))
     scripts.extend(readScriptsFromFile("tables/create_udfs.sql"))
+    scripts.extend(readScriptsFromFile("tables/create_indexes.sql"))
 
     for command in scripts:
         with create_connection() as conn:
