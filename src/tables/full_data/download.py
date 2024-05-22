@@ -139,7 +139,7 @@ def insert_author_many(authors):
                 except Exception as e:
                     print("Error...", author, e)
         except Exception as e:
-            print("Error...", author, e)
+            print("Error...", authors, e)
 
 def insert_institution_many(institutions):
     with create_connection() as conn:
