@@ -98,10 +98,10 @@ def list_all_by_article_count():
         cursor.execute("EXEC OrderByArticlesCount_journal;")
         rows = cursor.fetchall()
         return [JournalSimple(
-            row.JournalID or "Not found",
-            row.Name or "Not found",
-            row.PrintISSN or "Not found",
-            row.Url or "Not found"
+            row.JournalID or None,
+            row.Name or None,
+            row.PrintISSN or None,
+            row.Url or None
         ) for row in rows]
     
 def list_all():
@@ -110,28 +110,26 @@ def list_all():
         cursor.execute("EXEC OrderByJournalName;")
         rows = cursor.fetchall()
         return [JournalSimple(
-            row.JournalID or "Not found",
-            row.Name or "Not found",
-            row.PrintISSN or "Not found",
-            row.Url or "Not found"
+            row.JournalID or None,
+            row.Name or None,
+            row.PrintISSN or None,
+            row.Url or None
         ) for row in rows]
 
 def filterByName(name: str):
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("EXEC OrderBySearchJournalName @Name = ?", name)
+        cursor.execute("EXEC OrderBySearchJournalName @JournalName = ?", name)
         rows = cursor.fetchall()
 
         if rows == None:
             return NOT_FOUND
 
         return [JournalSimple(
-            row.JournalID or "Not found",
-            row.Name or "Not found",
-            row.PrintISSN or "Not found",
-            row.EletronicISSN or "Not found",
-            row.Url or "Not found",
-            row.Publisher or "Not found"
+            row.JournalID or None,
+            row.Name or None,
+            row.PrintISSN or None,
+            row.Url or None
         ) for row in rows]
 
 
