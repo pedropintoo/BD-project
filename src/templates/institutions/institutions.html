@@ -41,12 +41,10 @@
         </nav>
         
           <div class="row col-6">
-            <form class="d-flex mt-2 me-0" method="get" hx-get="/search-institutions" hx-trigger="submit" hx-target=".institutions-list">
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="query">
-              <button class="btn btn-outline-success me-2" type="submit">Search</button>
-              <button class="btn btn-outline-success" hx-get="/institutions/new" hx-swap="innerHTML" hx-target="#content">New</button>
-            </form>
-
+            <form class="d-flex mt-2 me-0" method="get" hx-get="/search-institutions" hx-trigger="input" hx-target=".institutions-list">
+              <input class="form-control me-2" type="search" placeholder="Search by Name" aria-label="Search" name="query" autocomplete="off">
+              <button class="btn btn-outline-success px-3" hx-get="/institutions/new" hx-swap="innerHTML" hx-target="#content">New</button>
+          </form>  
             <div class="container mt-4">
               <!-- Button Group -->
               <div class="btn-group" role="group" aria-label="Button group with SVG icons">

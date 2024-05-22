@@ -50,3 +50,10 @@ IF IndexProperty(Object_ID('Journal'), 'IDX_Journal_Name', 'IndexId') IS NOT NUL
 IF IndexProperty(Object_ID('Journal'), 'IDX_Journal_ArticlesCount', 'IndexId') IS NOT NULL    
     DROP INDEX IDX_Journal_ArticlesCount ON Journal;
 -----------------------------------------------------------------------------    
+
+-- indexes
+CREATE NONCLUSTERED INDEX IDX_Journal_Name
+ON Journal ([Name]);
+
+CREATE NONCLUSTERED INDEX IDX_Journal_ArticlesCount
+ON Journal (ArticlesCount);

@@ -34,7 +34,7 @@ CREATE PROCEDURE OrderBySearchAuthorName (@AuthorName NVARCHAR(50))
 AS
 BEGIN
     SELECT * FROM ListAllAuthors() 
-    WHERE [Name] LIKE @AuthorName + '%'
+    WHERE [Name] LIKE '%' + @AuthorName + '%'
     ORDER BY [Name]
 END;
 
@@ -212,7 +212,7 @@ CREATE PROCEDURE OrderBySearchInstitutionName (@InstitutionName NVARCHAR(50))
 AS 
 BEGIN
     SELECT * FROM ListAllInstitutions() 
-    WHERE [Name] LIKE @InstitutionName + '%'
+    WHERE [Name] LIKE '%' + @InstitutionName + '%'
     ORDER BY [Name]
 END;
 
@@ -354,7 +354,7 @@ CREATE PROCEDURE OrderBySearchTopicName (@TopicName NVARCHAR(50))
 AS
 BEGIN
     SELECT * FROM ListAllTopics() 
-    WHERE [Name] LIKE @TopicName + '%'
+    WHERE [Name] LIKE '%' + @TopicName + '%'
     ORDER BY [Name]
 END;
 
@@ -503,7 +503,7 @@ CREATE PROCEDURE OrderBySearchJournalName (@JournalName NVARCHAR(100))
 AS
 BEGIN
     SELECT * FROM ListAllJournals() 
-    WHERE [Name] LIKE @JournalName + '%'
+    WHERE [Name] LIKE '%' + @JournalName + '%'
     ORDER BY [Name]
 END;
 

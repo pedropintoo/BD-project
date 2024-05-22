@@ -39,10 +39,10 @@
               </div>
             </div>
         </nav>
-        <form class="d-flex col-6 mt-2" method="get" hx-get="/search-articles" hx-trigger="submit" hx-target=".articles-list">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="query">
-          <button class="btn btn-outline-success" type="submit">Search</button>
-      </form>
+        <form class="d-flex mt-2 me-0" method="get" hx-get="/search-articles" hx-trigger="input" hx-target=".articles-list">
+          <input class="form-control me-2" type="search" placeholder="Search by Name" aria-label="Search" name="query" autocomplete="off">
+          <button class="btn btn-outline-success px-3" hx-get="/articles/new" hx-swap="innerHTML" hx-target="#content">New</button>
+      </form> 
       
         <div class="articles-list alig-center w-50" hx-get="/articles-list" hx-trigger="refreshAuthorList from:body">
             {% include "articles/articles_list.html" %}
