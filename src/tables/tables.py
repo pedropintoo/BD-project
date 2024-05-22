@@ -49,7 +49,9 @@ class Article(NamedTuple):
     StartPage: int
     EndPage: int
     JournalID: str
-    Volume: int    
+    Volume: int
+    AuthorsCount: int
+
 
 class Journal(NamedTuple):
     JournalID: str

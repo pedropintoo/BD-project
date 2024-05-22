@@ -57,3 +57,22 @@ ON Journal ([Name]);
 
 CREATE NONCLUSTERED INDEX IDX_Journal_ArticlesCount
 ON Journal (ArticlesCount);
+
+-----------------------------------------------------------------------------    
+
+--################################# Article #################################--
+-- indexes
+IF IndexProperty(Object_ID('Article'), 'IDX_Article_Title', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Article_Title ON Article;
+IF IndexProperty(Object_ID('Article'), 'IDX_Article_AuthorsCount', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Article_AuthorsCount ON Article;    
+-----------------------------------------------------------------------------
+
+-- indexes
+CREATE NONCLUSTERED INDEX IDX_Article_Title
+ON Article ([Title]);
+
+CREATE NONCLUSTERED INDEX IDX_Article_AuthorsCount
+ON Article (AuthorsCount);
+
+

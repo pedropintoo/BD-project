@@ -67,3 +67,24 @@ RETURN
     FROM Journal
 );    
         
+--################################# Article #################################--
+DROP FUNCTION IF EXISTS ListAllArticles;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllArticles()
+RETURNS TABLE AS 
+RETURN
+(
+    SELECT 
+        Article.ArticleID, 
+        Article.Title, 
+        Article.Abstract, 
+        Article.DOI,
+        Journal.Name AS JournalName,
+        Article.AuthorsCount
+    FROM Article 
+    LEFT JOIN Journal ON Journal.JournalID = Article.JournalID
+);
+
+
+

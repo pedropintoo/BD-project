@@ -159,3 +159,42 @@ BEGIN
     INNER JOIN inserted i ON Journal.JournalID = i.JournalID
 END;
 
+--################################# Article #################################--
+DROP TRIGGER IF EXISTS trg_article_AuthorsCount_Insert;
+DROP TRIGGER IF EXISTS trg_article_AuthorsCount_Delete;
+DROP TRIGGER IF EXISTS trg_article_AuthorsCount_Update;
+--------------------------------------------------------------------------------
+
+CREATE TRIGGER trg_article_AuthorsCount_Insert
+ON Wrote_by AFTER INSERT AS
+BEGIN
+    UPDATE Article
+    SET AuthorsCount = (SELECT COALESCE(COUNT(*), 0) FROM Wrote_by WHERE Wrote_by.ArticleID = Article.ArticleID)
+    FROM Article
+    INNER JOIN inserted i ON Article.ArticleID = i.ArticleID
+END;
+
+CREATE TRIGGER trg_article_AuthorsCount_Delete
+ON Wrote_by AFTER DELETE AS
+BEGIN
+    UPDATE Article
+    SET AuthorsCount = (SELECT COALESCE(COUNT(*), 0) FROM Wrote_by WHERE Wrote_by.ArticleID = Article.ArticleID)
+    FROM Article
+    INNER JOIN deleted d ON Article.ArticleID = d.ArticleID
+END;
+
+CREATE TRIGGER trg_article_AuthorsCount_Update
+ON Wrote_by AFTER UPDATE AS
+BEGIN
+    -- Update previous AuthorsCount
+    UPDATE Article
+    SET AuthorsCount = (SELECT COALESCE(COUNT(*), 0) FROM Wrote_by WHERE Wrote_by.ArticleID = Article.ArticleID)
+    FROM Article
+    INNER JOIN deleted d ON Article.ArticleID = d.ArticleID
+
+    -- Update current AuthorsCount
+    UPDATE Article
+    SET AuthorsCount = (SELECT COALESCE(COUNT(*), 0) FROM Wrote_by WHERE Wrote_by.ArticleID = Article.ArticleID)
+    FROM Article
+    INNER JOIN inserted i ON Article.ArticleID = i.ArticleID
+END;

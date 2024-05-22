@@ -246,26 +246,108 @@ def articles():
     list_articles = article.list_all()
     return render_template("articles/articles.html", articles=list_articles)
 
+# list authors
 @app.route("/articles-list", methods=["GET"])
 def articles_list():
     articles = article.list_all()
     return render_template("articles/articles_list.html", articles=articles)
 
-@app.route("/articles/<article_id>", methods=["GET"])
-def articles_details(article_id: str):
-    article = article.read(article_id)
-    return render_template("articles/article_details_view.html", article=article)
+def articles_list_by_author_count():
+    articles = article.list_all_by_author_count()
+    return render_template("articles/articles_list.html", articles=articles)
 
+# show or edit specific article
+@app.route("/articles/<article_id>", methods=["GET"])
+def article_details(article_id: str):
+    article_details = article.read(article_id)
+    template = "articles/article_details_view.html" if not request.args.get("edit") else "articles/article_details_form.html"
+    return render_template(template, article=article_details, article_id=article_id)
+
+# delete article
+@app.route("/articles/<article_id>", methods=["DELETE"])
+def article_delete(article_id: str):
+    try:
+        print(f"Deleting article {article_id}")
+        article.delete(article_id)
+        response = make_response()
+        response.headers["HX-Trigger"] = "refreshArticleList" # refresh the article list
+        return response
+    except Exception as ex:
+        r = make_response(render_template_string(f"{ex}"))
+        return r
+
+# search articles
 @app.route('/search-articles', methods=['GET'])
 def search_articles():
     query = request.args.get('query', '').strip()  # Get the search term from the query parameter
-    
-    if query != "":
+    if query:
         articles = article.filterByName(query)
     else:
         articles = article.list_all()    
-
     return render_template('articles/articles_list.html', articles=articles)
+
+# form to create new article
+@app.route("/articles/new", methods=["GET"])
+def new_article_details():
+    return render_template("articles/article_details_form.html")
+
+@app.route("/articles", methods=["POST"]) # publish new article
+def save_article_details():
+    data = request.form
+    article_id = article.generate_article_id(data.get('Title'), data.get('Abstract'), data.get('DOI'), data.get('JournalName'), data.get('Volume'), data.get('StartPage'), data.get('EndPage')) # USE A HASH FUNCTION TO GENERATE A ID WITH 10 NUMBERS
+
+    new_article = article.ArticleForm(
+        Title=data.get('Title'),
+        Abstract=data.get('Abstract'),
+        DOI=data.get('DOI'),
+        JournalName=data.get('JournalName'),
+        Volume=data.get('Volume'),
+        StartPage=data.get('StartPage'),
+        EndPage=data.get('EndPage')
+    )
+
+    try:
+        article.create(article_id, new_article)
+        response = make_response()
+        print("NEW ARTICLE ADDED")
+        print(new_article)
+    except Exception as e:
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("articles/article_details_form.html", article=new_article, warning=warning_message))
+        print(e)
+        print("ERROR CREATING ARTICLE")
+        print(new_article)
+
+    response.headers["HX-Trigger"] = "refreshArticleList"
+    return response
+
+# update article
+@app.route("/articles/<article_id>", methods=["POST"])
+def article_update(article_id: str):
+    data = request.form
+
+    new_article = article.ArticleForm(
+        Title=data.get('Title'),
+        Abstract=data.get('Abstract'),
+        DOI=data.get('DOI'),
+        JournalName=data.get('JournalName'),
+        Volume=data.get('Volume'),
+        StartPage=data.get('StartPage'),
+        EndPage=data.get('EndPage')
+    )
+
+    try:
+        article.update(article_id, new_article)
+        print("UPDATED ARTICLE")
+        response = make_response(article_details(article_id))
+    except Exception as e:
+        print("ERROR UPDATING ARTICLE " + str(e.args[1]))
+        print(new_article)
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("articles/article_details_form.html", article=new_article, article_id=article_id, warning=warning_message))
+
+    response.headers["HX-Trigger"] = "refreshArticleList"
+    return response        
 
 ########
 
