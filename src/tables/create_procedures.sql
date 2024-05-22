@@ -329,54 +329,132 @@ DROP PROCEDURE IF EXISTS UpdateTopic;
 DROP PROCEDURE IF EXISTS CreateTopic;
 --------------------------------------------------------------------------------
 
--- -- listing
--- CREATE PROCEDURE OrderByTopicName
--- AS
--- BEGIN
---     SELECT * 
---     FROM ListAllTopics()
---     ORDER BY [Name]
--- END;
+-- listing
+CREATE PROCEDURE OrderByTopicName
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllTopics()
+    ORDER BY [Name]
+END;
 
--- CREATE PROCEDURE OrderByArticlesCount
--- AS
--- BEGIN
---     SELECT * 
---     FROM ListAllTopics()
---     ORDER BY ArticlesCount DESC
--- END;
+CREATE PROCEDURE OrderByArticlesCount
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllTopics()
+    ORDER BY ArticlesCount DESC
+END;
 
--- CREATE PROCEDURE OrderBySearchTopicName (@TopicName NVARCHAR(50))
--- AS
--- BEGIN
---     SELECT * FROM ListAllTopics() 
---     WHERE [Name] LIKE @TopicName + '%'
---     ORDER BY [Name]
--- END;
+CREATE PROCEDURE OrderBySearchTopicName (@TopicName NVARCHAR(50))
+AS
+BEGIN
+    SELECT * FROM ListAllTopics() 
+    WHERE [Name] LIKE @TopicName + '%'
+    ORDER BY [Name]
+END;
 
--- -- details
--- CREATE PROCEDURE ListTopicDetails
---     @TopicID VARCHAR(10)
--- AS
--- BEGIN
---     SELECT 
---         Topic.Name, 
---         Topic.Description,
---         Topic.ArticlesCount
---     FROM Topic
---     WHERE Topic.TopicID = @TopicID
+-- details
+CREATE PROCEDURE ListTopicDetails
+    @TopicID VARCHAR(10)
+AS
+BEGIN
+    SELECT 
+        Topic.Name, 
+        Topic.Description,
+        Topic.ArticlesCount
+    FROM Topic
+    WHERE Topic.TopicID = @TopicID
 
---     -- Count users who are interested in this topic
---     SELECT COUNT(*) AS UsersCount
---     FROM Interested_in
---     WHERE TopicID = @TopicID
---     GROUP BY TopicID
+    -- Count users who are interested in this topic
+    SELECT COALESCE(COUNT(*), 0) AS UsersCount FROM Interested_in WHERE TopicID = @TopicID
+        -- list of articles
+    SELECT Article.Title 
+    FROM Belongs_to
+    INNER JOIN Article ON Belongs_to.ArticleID = Article.ArticleID
+    WHERE Belongs_to.TopicID = @TopicID
+END;
 
---     -- list of articles
---     SELECT Article.Title 
---     FROM Article
---     WHERE Article.TopicID = @TopicID
--- END;
+-- delete/update/create
+CREATE PROCEDURE DeleteTopic
+    @TopicID VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- start transaction
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        -- Remove related records
+        DELETE FROM Interested_in
+        WHERE TopicID = @TopicID
+
+        DELETE FROM Belongs_to
+        WHERE TopicID = @TopicID
+
+        -- Delete the topic
+        DELETE FROM Topic
+        WHERE TopicID = @TopicID
+        -- Commit the transaction
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        -- Rollback the transaction in case of an error
+        ROLLBACK TRANSACTION
+
+        -- Rethrow the error
+        THROW
+    END CATCH
+END;
+
+CREATE PROCEDURE ValidateTopicName
+    @Name NVARCHAR(50)
+AS
+BEGIN
+    IF @Name IS NULL
+    BEGIN
+        RAISERROR ('Topic name cannot be empty.', 16, 1)
+        RETURN
+    END
+END;
+
+CREATE PROCEDURE UpdateTopic
+    @TopicID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Description NVARCHAR(300)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+        SET @Description = NULLIF(@Description, '')
+
+    EXEC ValidateTopicName @Name -- exception may be thrown
+
+    UPDATE Topic
+    SET [Name] = @Name, [Description] = @Description
+    WHERE TopicID = @TopicID
+END;
+
+CREATE PROCEDURE CreateTopic
+    @TopicID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Description NVARCHAR(300)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @Description = NULLIF(@Description, '')
+
+    EXEC ValidateTopicName @Name -- exception may be thrown
+
+    INSERT INTO Topic (TopicID, [Name], [Description], ArticlesCount) 
+    VALUES (@TopicID, @Name, @Description, 0)
+END;
 
 
 --################################# Journal #################################--

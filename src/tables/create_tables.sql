@@ -4,6 +4,7 @@ CREATE TABLE Topic(
     TopicID             VARCHAR(10)     NOT NULL,
     [Name]              VARCHAR(50)     NOT NULL,
     [Description]       VARCHAR(500),
+    ArticlesCount               INT,
     PRIMARY KEY (TopicID),
     UNIQUE ([Name])
 )

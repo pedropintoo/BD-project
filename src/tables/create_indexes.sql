@@ -22,11 +22,26 @@ IF IndexProperty(Object_ID('Institution'), 'IDX_Institution_AuthorsCount', 'Inde
 -----------------------------------------------------------------------------
 
 -- indexes
--- CREATE NONCLUSTERED INDEX IDX_Institution_Name
--- ON Institution ([Name]);
+CREATE NONCLUSTERED INDEX IDX_Institution_Name
+ON Institution ([Name]);
 
--- CREATE NONCLUSTERED INDEX IDX_Institution_AuthorsCount
--- ON Institution (AuthorsCount);
+CREATE NONCLUSTERED INDEX IDX_Institution_AuthorsCount
+ON Institution (AuthorsCount);
+
+--################################# Topic #################################--
+-- indexes
+IF IndexProperty(Object_ID('Topic'), 'IDX_Topic_Name', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Topic_Name ON Topic;
+IF IndexProperty(Object_ID('Topic'), 'IDX_Topic_ArticlesCount', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Topic_ArticlesCount ON Topic;
+-----------------------------------------------------------------------------
+
+-- indexes
+CREATE NONCLUSTERED INDEX IDX_Topic_Name
+ON Topic ([Name]);
+
+CREATE NONCLUSTERED INDEX IDX_Topic_ArticlesCount
+ON Topic (ArticlesCount);
 
 --################################# Journal #################################--
 -- indexes

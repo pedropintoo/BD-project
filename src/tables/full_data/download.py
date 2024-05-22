@@ -185,7 +185,7 @@ def insert_journal_many(journals):
     with create_connection() as conn:
         cursor = conn.cursor()
 
-        query = "INSERT INTO Journal VALUES (?, ?, ?, ?, ?, ?)"
+        query = "INSERT INTO Journal VALUES (?, ?, ?, ?, ?, ?, ?)"
         
         try:
             cursor.executemany(query, journals)
@@ -308,7 +308,7 @@ def insert_topic_many(topics):
     with create_connection() as conn:
         cursor = conn.cursor()
         
-        query = "INSERT INTO Topic (TopicID, Name, Description) VALUES (?, ?, ?)"
+        query = "INSERT INTO Topic VALUES (?, ?, ?, ?)"
 
         try:
             cursor.executemany(query, topics)
@@ -365,7 +365,8 @@ def insert_journals(buffer):
             PrintISSN = journal_data["issn"],
             EletronicISSN = journal_data["alternate_issns"][0] if journal_data["alternate_issns"] else None,
             Url = journal_data["url"],
-            Publisher = None
+            Publisher = None,
+            ArticlesCount = 0
             )
 
         journals.append(journal)
@@ -447,6 +448,8 @@ def insert_articles_and_topics_and_journalVersions(buffer):
         # We only insert papers who has a topic
         if article_data["s2FieldsOfStudy"] is None or article_data["externalIds"].get("CorpusId", None) is None:
             continue
+        
+        article_topics = []
 
         # Get topics
         for item in article_data["s2FieldsOfStudy"]:
@@ -455,9 +458,14 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             topic = Topic(
                 TopicID = str(abs(hash(topic_name)) % (10 ** 10)),
                 Name = topic_name,
-                Description = None
+                Description = None,
+                ArticlesCount = 0
             )
 
+            if topic.TopicID in article_topics:
+                continue
+
+            article_topics.append(topic.TopicID)
             topics.append(topic)
 
             
@@ -485,7 +493,8 @@ def insert_articles_and_topics_and_journalVersions(buffer):
                 PrintISSN = None,
                 EletronicISSN = None,
                 Url = None,
-                Publisher = None
+                Publisher = None,
+                ArticlesCount = 0
             )
 
             journals.append(journal)
@@ -527,7 +536,8 @@ def insert_articles_and_topics_and_journalVersions(buffer):
 
         articles.append(article)   
 
-        belongs_to.append((topic.TopicID, article.ArticleID))
+        for topicID in article_topics:
+            belongs_to.append((topicID, article.ArticleID))
         
 
     # Insert topic data
@@ -582,13 +592,13 @@ if __name__ == '__main__':
 
     # Use some data from the downloaded files
 
-    buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
-    print("buffer length: ", len(buffer))
-    inc = 25
-    max = 600
-    for i in range(0, max, inc):
-        insert_journals(buffer[i:i+inc])
-        print("inserted [", i, ":", i+inc, "].")
+    # buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
+    # print("buffer length: ", len(buffer))
+    # inc = 25
+    # max = 600
+    # for i in range(0, max, inc):
+    #     insert_journals(buffer[i:i+inc])
+    #     print("inserted [", i, ":", i+inc, "].")
     
     buffer = gzip.open("tables\\full_data\\authors\\authors0.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))

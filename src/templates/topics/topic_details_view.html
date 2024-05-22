@@ -4,16 +4,16 @@
             <h2>Topics Details: {{ topic_id }}</h2>
         </div>
         <div class="card-body">
-            <p><strong>Name:</strong> {{ institution.Name }}</p>
-            <p><strong>Description:</strong> {{ institution.Description }}</p>
+            <p><strong>Name:</strong> {{ topic.Name }}</p>
+            <p><strong>Description:</strong> {{ topic.Description }}</p>
 
-            {% if institution.InterestedCount > 0 %}
+            {% if topic.ArticlesCount > 0 %}
             <div>
                 <br>
                 <ul class="list-group">
-                    {% for authorName in institution.AuthorsList %}
+                    {% for articleName in topic.ArticlesList %}
                         <li class="list-group-item d-flex align-items-center">
-                            <i class="fas fa-user mr-2"></i> {{ authorName }}
+                            <i class="fas fa-user mr-2"></i> {{ articleName }}
                         </li>
                     {% endfor %}
                 </ul>

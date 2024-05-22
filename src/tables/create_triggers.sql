@@ -1,10 +1,10 @@
 --################################# Author #################################--
-DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Insert;
-DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Delete;
-DROP TRIGGER IF EXISTS trg_UpdateArticlesCount_Update;
+DROP TRIGGER IF EXISTS trg_author_ArticlesCount_Insert;
+DROP TRIGGER IF EXISTS trg_author_ArticlesCount_Delete;
+DROP TRIGGER IF EXISTS trg_author_ArticlesCount_Update;
 --------------------------------------------------------------------------------
 
-CREATE TRIGGER trg_UpdateArticlesCount_Insert
+CREATE TRIGGER trg_author_ArticlesCount_Insert
 ON Wrote_by AFTER INSERT AS
 BEGIN
     UPDATE Author
@@ -13,7 +13,7 @@ BEGIN
     INNER JOIN inserted i ON Author.AuthorID = i.AuthorID
 END;
 
-CREATE TRIGGER trg_UpdateArticlesCount_Delete
+CREATE TRIGGER trg_author_ArticlesCount_Delete
 ON Wrote_by AFTER DELETE AS
 BEGIN
     UPDATE Author
@@ -22,7 +22,7 @@ BEGIN
     INNER JOIN deleted d ON Author.AuthorID = d.AuthorID
 END;
 
-CREATE TRIGGER trg_UpdateArticlesCount_Update
+CREATE TRIGGER trg_author_ArticlesCount_Update
 ON Wrote_by AFTER UPDATE AS
 BEGIN
     -- Update previous ArticlesCount
@@ -40,12 +40,12 @@ END;
 
 
 --################################# Institution #################################--
-DROP TRIGGER IF EXISTS trg_UpdateAuthorsCount_Insert;
-DROP TRIGGER IF EXISTS trg_UpdateAuthorsCount_Delete;
-DROP TRIGGER IF EXISTS trg_UpdateAuthorsCount_Update;
+DROP TRIGGER IF EXISTS trg_institution_AuthorsCount_Insert;
+DROP TRIGGER IF EXISTS trg_institution_AuthorsCount_Delete;
+DROP TRIGGER IF EXISTS trg_institution_AuthorsCount_Update;
 --------------------------------------------------------------------------------
 
-CREATE TRIGGER trg_UpdateAuthorsCount_Insert
+CREATE TRIGGER trg_institution_AuthorsCount_Insert
 ON Author AFTER INSERT AS
 BEGIN
     UPDATE Institution
@@ -54,7 +54,7 @@ BEGIN
     INNER JOIN inserted i ON Institution.InstitutionID = i.InstitutionID
 END;
 
-CREATE TRIGGER trg_UpdateAuthorsCount_Delete
+CREATE TRIGGER trg_institution_AuthorsCount_Delete
 ON Author AFTER DELETE AS
 BEGIN
     UPDATE Institution
@@ -63,7 +63,7 @@ BEGIN
     INNER JOIN deleted i ON Institution.InstitutionID = i.InstitutionID
 END;
 
-CREATE TRIGGER trg_UpdateAuthorsCount_Update
+CREATE TRIGGER trg_institution_AuthorsCount_Update
 ON Author AFTER UPDATE AS
 BEGIN
     -- Update previous AuthorsCount
@@ -77,6 +77,46 @@ BEGIN
     SET AuthorsCount = (SELECT COALESCE(COUNT(*), 0) FROM Author WHERE Author.InstitutionID = Institution.InstitutionID)
     FROM Institution
     INNER JOIN inserted i ON Institution.InstitutionID = i.InstitutionID
+END;
+
+--################################# Topic #################################--
+DROP TRIGGER IF EXISTS trg_topic_ArticlesCount_Insert;
+DROP TRIGGER IF EXISTS trg_topic_ArticlesCount_Delete;
+DROP TRIGGER IF EXISTS trg_topic_ArticlesCount_Update;
+--------------------------------------------------------------------------------
+
+CREATE TRIGGER trg_topic_ArticlesCount_Insert
+ON Belongs_to AFTER INSERT AS
+BEGIN
+    UPDATE Topic
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Belongs_to WHERE Belongs_to.TopicID = Topic.TopicID)
+    FROM Topic
+    INNER JOIN inserted i ON Topic.TopicID = i.TopicID
+END;
+
+CREATE TRIGGER trg_topic_ArticlesCount_Delete
+ON Belongs_to AFTER DELETE AS
+BEGIN
+    UPDATE Topic
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Belongs_to WHERE Belongs_to.TopicID = Topic.TopicID)
+    FROM Topic
+    INNER JOIN deleted d ON Topic.TopicID = d.TopicID
+END;
+
+CREATE TRIGGER trg_topic_ArticlesCount_Update
+ON Belongs_to AFTER UPDATE AS
+BEGIN
+    -- Update previous ArticlesCount
+    UPDATE Topic
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Belongs_to WHERE Belongs_to.TopicID = Topic.TopicID)
+    FROM Topic
+    INNER JOIN deleted d ON Topic.TopicID = d.TopicID
+
+    -- Update current ArticlesCount
+    UPDATE Topic
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Belongs_to WHERE Belongs_to.TopicID = Topic.TopicID)
+    FROM Topic
+    INNER JOIN inserted i ON Topic.TopicID = i.TopicID
 END;
 
 --################################# Journal #################################--
