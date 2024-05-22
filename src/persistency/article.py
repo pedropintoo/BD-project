@@ -52,7 +52,7 @@ def read(article_id: str) -> ArticleDetails:
     with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("EXEC ListArticleDetails @ArticleID = ?", article_id)
-
+        print(article_id)
         article_row = cursor.fetchone()
         article_details = ArticleDetails(
             article_row[0] or "",

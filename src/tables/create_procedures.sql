@@ -695,8 +695,8 @@ BEGIN
         JournalVolume.PublicationDate, 
         Article.AuthorsCount
     FROM Article
-    INNER JOIN JournalVolume ON JournalVolume.JournalID = Article.JournalID AND JournalVolume.Volume = Article.Volume
-    INNER JOIN Journal ON Journal.JournalID = Article.JournalID
+    LEFT JOIN JournalVolume ON JournalVolume.JournalID = Article.JournalID AND JournalVolume.Volume = Article.Volume
+    LEFT JOIN Journal ON Journal.JournalID = Article.JournalID
     WHERE Article.ArticleID = @ArticleID
 
     -- list of authors

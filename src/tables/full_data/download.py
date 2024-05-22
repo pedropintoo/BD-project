@@ -227,7 +227,7 @@ def insert_article_many(articles):
     with create_connection() as conn:
         cursor = conn.cursor()
 
-        query = "INSERT INTO Article VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        query = "INSERT INTO Article VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
         try:
             cursor.executemany(query, articles)
@@ -540,7 +540,8 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             StartPage = startPage,
             EndPage = endPage,
             JournalID = journalID,
-            Volume = volume
+            Volume = volume,
+            AuthorsCount = 0
             )
 
         articles.append(article)   

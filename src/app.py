@@ -252,6 +252,7 @@ def articles_list():
     articles = article.list_all()
     return render_template("articles/articles_list.html", articles=articles)
 
+@app.route("/articles-list-author-count", methods=["GET"])
 def articles_list_by_author_count():
     articles = article.list_all_by_author_count()
     return render_template("articles/articles_list.html", articles=articles)
