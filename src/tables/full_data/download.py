@@ -227,7 +227,7 @@ def insert_article_many(articles):
     with create_connection() as conn:
         cursor = conn.cursor()
 
-        query = "INSERT INTO Article VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        query = "INSERT INTO Article VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
         try:
             cursor.executemany(query, articles)
@@ -430,6 +430,7 @@ def insert_authors_and_institutions(buffer):
 
     # Insert paper data
     if len(buffer_articles) > 0:
+        # TODO: return authors and wrote_by!!!
         insert_articles_and_topics_and_journalVersions(buffer_articles[0])
 
     # Insert author data
@@ -471,7 +472,7 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             article_topics.append(topic.TopicID)
             topics.append(topic)
 
-            
+        print(article_data) 
 
         journal_info = article_data["journal"]
         if journal_info == "" or journal_info is None:
@@ -540,7 +541,8 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             StartPage = startPage,
             EndPage = endPage,
             JournalID = journalID,
-            Volume = volume
+            Volume = volume,
+            AuthorsCount = 0
             )
 
         articles.append(article)   

@@ -474,7 +474,6 @@ DROP PROCEDURE IF EXISTS OrderBySearchJournalName;
 DROP PROCEDURE IF EXISTS OrderByArticlesCount_journal; -- slightly different name
 -- details
 DROP PROCEDURE IF EXISTS ListJournalDetails;
-DROP PROCEDURE IF EXISTS GetJournalIDByName;
 -- delete/update/create
 DROP PROCEDURE IF EXISTS DeleteJournal;
 DROP PROCEDURE IF EXISTS ValidateJournalName;
@@ -640,6 +639,210 @@ BEGIN
 END;        
 
 
+--################################# Article #################################--
+-- listing
+DROP PROCEDURE IF EXISTS OrderByArticleTitle;
+DROP PROCEDURE IF EXISTS OrderBySearchArticleTitle;
+DROP PROCEDURE IF EXISTS OrderByAuthorsCount_article; -- slightly different name
+-- details
+DROP PROCEDURE IF EXISTS ListArticleDetails;
+DROP PROCEDURE IF EXISTS GetJournalIDByName;
+-- delete/update/create
+DROP PROCEDURE IF EXISTS DeleteArticle;
+DROP PROCEDURE IF EXISTS ValidateArticleTitle;
+DROP PROCEDURE IF EXISTS UpdateArticle;
+DROP PROCEDURE IF EXISTS CreateArticle;
+--------------------------------------------------------------------------------
+
+-- listing
+CREATE PROCEDURE OrderByArticleTitle
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllArticles()
+    ORDER BY Title
+END;
+
+CREATE PROCEDURE OrderByAuthorsCount_article
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllArticles()
+    ORDER BY AuthorsCount DESC
+END;
+
+CREATE PROCEDURE OrderBySearchArticleTitle (@ArticleTitle NVARCHAR(500))
+AS
+BEGIN
+    SELECT * FROM ListAllArticles() 
+    WHERE Title LIKE @ArticleTitle + '%'
+    ORDER BY Title
+END;
+
+-- details
+CREATE PROCEDURE ListArticleDetails
+    @ArticleID VARCHAR(10)
+AS
+BEGIN
+    SELECT 
+        Article.Title, 
+        Article.Abstract, 
+        Article.DOI, 
+        Article.StartPage, 
+        Article.EndPage, 
+        Journal.[Name] AS JournalName, 
+        JournalVolume.Volume, 
+        JournalVolume.PublicationDate, 
+        Article.AuthorsCount
+    FROM Article
+    LEFT JOIN JournalVolume ON JournalVolume.JournalID = Article.JournalID AND JournalVolume.Volume = Article.Volume
+    LEFT JOIN Journal ON Journal.JournalID = Article.JournalID
+    WHERE Article.ArticleID = @ArticleID
+
+    -- list of authors
+    SELECT Author.Name
+    FROM Author
+    INNER JOIN (
+        SELECT AuthorID
+        FROM Wrote_by
+        WHERE ArticleID = @ArticleID
+    ) AS ArticleAuthors ON Author.AuthorID = ArticleAuthors.AuthorID
+
+    -- list of topics
+    SELECT Topic.Name
+    FROM Topic
+    INNER JOIN (
+        SELECT TopicID
+        FROM Belongs_to
+        WHERE ArticleID = @ArticleID
+    ) AS ArticleTopics ON Topic.TopicID = ArticleTopics.TopicID
+
+END;
 
 
+CREATE PROCEDURE GetJournalIDByName
+    @JournalName VARCHAR(100),
+    @JournalID VARCHAR(40) OUTPUT
+AS
+BEGIN
+    SELECT @JournalID = JournalID
+    FROM Journal
+    WHERE [Name] = @JournalName
+END;
 
+-- delete/update/create
+CREATE PROCEDURE DeleteArticle
+    @ArticleID VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- start transaction
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        -- Remove related records in the Wrote_by table
+        DELETE FROM Wrote_by
+        WHERE ArticleID = @ArticleID
+
+        -- Remove related records in the Belongs_to table
+        DELETE FROM Belongs_to
+        WHERE ArticleID = @ArticleID
+
+        -- Remove the article
+        DELETE FROM Article
+        WHERE ArticleID = @ArticleID
+
+        -- Commit the transaction
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        -- Rollback the transaction in case of an error
+        ROLLBACK TRANSACTION
+
+        -- Rethrow the error
+        THROW
+    END CATCH
+END;
+
+CREATE PROCEDURE ValidateArticleTitle
+    @Title NVARCHAR(500),
+    @JournalName VARCHAR(100),
+    @JourID VARCHAR(40) OUTPUT
+AS
+BEGIN 
+    IF @Title IS NULL
+    BEGIN
+        RAISERROR ('Article title cannot be empty.', 16, 1)
+        RETURN
+    END
+
+    EXEC GetJournalIDByName @JournalName, @JournalID = @JourID OUTPUT
+
+    -- Check if JournalID is NULL and JournalName is not empty
+    IF @JourID is NULL AND @JournalName IS NOT NULL
+    BEGIN
+        RAISERROR ('Journal %s not found.', 16, 1, @JournalName)
+        RETURN
+    END
+END;
+
+
+CREATE PROCEDURE UpdateArticle
+    @ArticleID VARCHAR(10),
+    @Title NVARCHAR(500),
+    @Abstract VARCHAR(1250),
+    @DOI VARCHAR(50),
+    @StartPage INT,
+    @EndPage INT,
+    @JournalName VARCHAR(100),
+    @Volume INT
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Title = NULLIF(@Title, '')
+    SET @Abstract = NULLIF(@Abstract, '')
+    SET @DOI = NULLIF(@DOI, '')
+    SET @StartPage = NULLIF(@StartPage, 0)
+    SET @EndPage = NULLIF(@EndPage, 0)
+    SET @JournalName = NULLIF(@JournalName, '')
+    SET @Volume = NULLIF(@Volume, 0)
+
+    DECLARE @JourID VARCHAR(40)
+    EXEC ValidateArticleTitle @Title, @JournalName, @JourID OUTPUT -- exception may be thrown
+
+    UPDATE Article
+    SET Title = @Title, Abstract = @Abstract, DOI = @DOI, StartPage = @StartPage, EndPage = @EndPage, JournalID = @JourID, Volume = @Volume
+    WHERE ArticleID = @ArticleID
+END;    
+
+CREATE PROCEDURE CreateArticle
+    @ArticleID VARCHAR(10),
+    @Title NVARCHAR(500),
+    @Abstract VARCHAR(1250),
+    @DOI VARCHAR(50),
+    @StartPage INT,
+    @EndPage INT,
+    @JournalName VARCHAR(100),
+    @Volume INT
+AS
+BEGIN    
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Title = NULLIF(@Title, '')
+    SET @Abstract = NULLIF(@Abstract, '')
+    SET @DOI = NULLIF(@DOI, '')
+    SET @StartPage = NULLIF(@StartPage, 0)
+    SET @EndPage = NULLIF(@EndPage, 0)
+    SET @JournalName = NULLIF(@JournalName, '')
+    SET @Volume = NULLIF(@Volume, 0)
+
+    DECLARE @JourID VARCHAR(40)
+    EXEC ValidateArticleTitle @Title, @JournalName, @JourID OUTPUT -- exception may be thrown
+
+    INSERT INTO Article (ArticleID, Title, Abstract, DOI, StartPage, EndPage, JournalID, Volume, AuthorsCount) 
+    VALUES (@ArticleID, @Title, @Abstract, @DOI, @StartPage, @EndPage, @JourID, @Volume, 0)
+END;
