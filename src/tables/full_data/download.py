@@ -488,7 +488,7 @@ def insert_articles_and_topics_and_journalVersions(buffer):
         
         journalID = str(abs(hash(journalName)) % (10 ** 40))
         
-        if journalID == "0":
+        if journalID == "0" or journalName is None or journalName == "":
             continue
 
         # create journal object
@@ -504,6 +504,9 @@ def insert_articles_and_topics_and_journalVersions(buffer):
 
         journals.append(journal)
         
+        if article_data["publicationDate"] is None or article_data["publicationDate"] == "":
+            continue
+
         print( article_data)
         # create journal volume object
         journalVolume = JournalVolume(

@@ -30,9 +30,9 @@ class JournalDetails(NamedTuple):
     EletronicISSN: str
     Url: str
     Publisher: str
+    UsersCount: int
     ArticlesCount: int
-    VolumesCount: int
-    VolumesList: dict[str, list[str]] # dict of volume number and list of articles
+    VolumesList: dict[tuple[str, str], list[str]] # dict of volume number and list of articles
 
 NOT_FOUND = JournalSimple(
             None,
@@ -47,6 +47,10 @@ def read(journal_id: str) -> JournalDetails:
         cursor = conn.cursor()
         cursor.execute("EXEC ListJournalDetails @JournalID = ?", journal_id)
         
+        # copy the users favorites counter to a new variable
+        users_count = cursor.fetchone()[0]
+        
+        cursor.nextset()
         journal_row = cursor.fetchone()
         journal_details = JournalDetails(
             journal_row[0] or "",
@@ -54,8 +58,8 @@ def read(journal_id: str) -> JournalDetails:
             journal_row[2] or "",
             journal_row[3] or "",
             journal_row[4] or "",
+            users_count or 0,
             journal_row[5] or 0,
-            0,
             {}  # start empty
         )
 
@@ -64,9 +68,13 @@ def read(journal_id: str) -> JournalDetails:
         volumes = cursor.fetchall()
         volumes_dict = {}
         for volume in volumes:
-            volume_number = volume[0]
-            article_list = volume[1]
-            volumes_dict[volume_number] = article_list
+            volume_number = volume[1]
+            publication_date = volume[2]
+            key = (volume_number, publication_date)
+            article_title = volume[3]
+            if key not in volumes_dict:
+                volumes_dict[key] = []
+            volumes_dict[key].append(article_title)    
 
         journal_details = journal_details._replace(VolumesList=volumes_dict)
 

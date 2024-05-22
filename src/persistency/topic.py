@@ -39,8 +39,8 @@ def read(topic_id: str) -> TopicDetails:
 
         # copy the users interest counter to a new variable
         users_count = cursor.fetchone()[0]
+        
         cursor.nextset()
-
         topic_row = cursor.fetchone()
         topic_details = TopicDetails(
             topic_row[0] or "",

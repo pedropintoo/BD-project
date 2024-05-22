@@ -537,6 +537,9 @@ CREATE PROCEDURE ListJournalDetails
     @JournalID VARCHAR(40)
 AS
 BEGIN
+    -- Count users who are interested in this topic
+    SELECT COALESCE(COUNT(*), 0) FROM Favorite_Journal WHERE JournalID = @JournalID
+
     SELECT 
         Journal.[Name], 
         Journal.PrintISSN, 
@@ -555,6 +558,7 @@ BEGIN
         FROM Article
         WHERE Article.JournalID = @JournalID
     ) AS JournalArticles ON JournalVolume.JournalID = JournalArticles.JournalID AND JournalVolume.Volume = JournalArticles.Volume
+    ORDER BY JournalVolume.PublicationDate DESC
 
 END;
 
