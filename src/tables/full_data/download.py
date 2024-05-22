@@ -574,7 +574,6 @@ def get_fullData_links(dataset, release = "latest"):
     return links
 
 if __name__ == '__main__':
-    
     # Download the data from the API
     # link = get_fullData_links("publication-venues","2024-04-02")[0]
     # urllib.request.urlretrieve(link, "tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz")
@@ -583,13 +582,13 @@ if __name__ == '__main__':
 
     # Use some data from the downloaded files
 
-    # buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
-    # print("buffer length: ", len(buffer))
-    # inc = 25
-    # max = 1000
-    # for i in range(0, max, inc):
-    #     insert_journals(buffer[i:i+inc])
-    #     print("inserted [", i, ":", i+inc, "].")
+    buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
+    print("buffer length: ", len(buffer))
+    inc = 25
+    max = 600
+    for i in range(0, max, inc):
+        insert_journals(buffer[i:i+inc])
+        print("inserted [", i, ":", i+inc, "].")
     
     buffer = gzip.open("tables\\full_data\\authors\\authors0.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))
