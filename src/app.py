@@ -307,26 +307,107 @@ def journals():
     list_journals = journal.list_all()
     return render_template("journals/journals.html", journals=list_journals)
 
+# list journals
 @app.route("/journals-list", methods=["GET"])
 def journals_list():
     journals = journal.list_all()
     return render_template("journals/journals_list.html", journals=journals)
 
-@app.route("/journals/<journal_id>", methods=["GET"])
-def journals_details(journal_id: str):
-    journal = journal.read(journal_id)
-    return render_template("journals/journal_details_view.html", journal=journal)
+@app.route("/journals-list-volume-count", methods=["GET"])
+def journals_list_by_volume_count():
+    journals = journal.list_all_by_volume_count()
+    return render_template("journals/journals_list.html", journals=journals)
 
+# show or edit specific author
+@app.route("/journals/<journal_id>", methods=["GET"])
+def journal_details(journal_id: str):
+    journal_details = journal.read(journal_id)
+    template = "journals/journal_details_view.html" if not request.args.get("edit") else "journals/journals_details_form.html"
+    return render_template(template, journal=journal_details, journal_id=journal_id)
+
+# delete journal
+@app.route("/journals/<journal_id>", methods=["DELETE"])
+def journal_delete(journal_id: str):
+    try:
+        print(f"Deleting journal {journal_id}")
+        journal.delete(journal_id)
+        response = make_response()
+        response.headers["HX-Trigger"] = "refreshAuthorList" # refresh the journal list
+        return response
+    except Exception as ex:
+        r = make_response(render_template_string(f"{ex}"))
+        return r
+
+
+# search journals
 @app.route('/search-journals', methods=['GET'])
 def search_journals():
-    query = request.args.get('query', '').strip()  # Get the search term from the query parameter
-    
-    if query != "":
+    query = request.args.get('query', '').strip()   # Get the search term from the query parameter
+    if query:
         journals = journal.filterByName(query)
     else:
-        journals = journal.list_all()    
-
+        journals = journal.list_all()
     return render_template('journals/journals_list.html', journals=journals)
+
+# form to create new journal
+@app.route("/journals/new", methods=["GET"])
+def new_journal_details():
+    return render_template("journals/journals_details_form.html")
+
+@app.route("/journals", methods=["POST"]) # publish new journal
+def save_journal_details():
+    data = request.form
+    journal_id = journal.generate_journal_id(data.get('Name'), data.get('PrintISSN'), data.get('EletronicISSN'), data.get('Url'), data.get('Publisher'))
+
+    new_journal = journal.JournalForm(
+        Name=data.get('Name'),
+        PrintISSN=data.get('PrintISSN'),
+        EletronicISSN=data.get('EletronicISSN'),
+        Url=data.get('Url'),
+        Publisher=data.get('Publisher')
+    )
+
+    try:
+        journal.create(journal_id, new_journal)
+        response = make_response()
+        print("NEW JOURNAL ADDED")
+        print(new_journal)
+    except Exception as e:
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("journals/journals_details_form.html", journal=new_journal, warning=warning_message))
+        print(e)
+        print("ERROR CREATING JOURNAL")
+        print(new_journal)
+
+    response.headers["HX-Trigger"] = "refreshJournalList"
+    return response
+
+# update journal
+@app.route("/journals/<journal_id>", methods=["POST"])
+def journal_update(journal_id: str):
+    data = request.form
+
+    new_journal = journal.JournalForm(
+        Name=data.get('Name'),
+        PrintISSN=data.get('PrintISSN'),
+        EletronicISSN=data.get('EletronicISSN'),
+        Url=data.get('Url'),
+        Publisher=data.get('Publisher')
+    )
+
+    try:
+        journal.update(journal_id, new_journal)
+        print("UPDATED JOURNAL")
+        response = make_response(journal_details(journal_id))
+    except Exception as e:
+        print("ERROR UPDATING JOURNAL " + str(e.args[1]))
+        print(new_journal)
+        warning_message = str(e.args[1]).split("(50000)")[-2].split("]")[-1].strip() if len(e.args) > 1 else 'ERROR'
+        response = make_response(render_template("journals/journals_details_form.html", journal=new_journal, journal_id=journal_id, warning=warning_message))
+
+    response.headers["HX-Trigger"] = "refreshJournalList"
+    return response    
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)

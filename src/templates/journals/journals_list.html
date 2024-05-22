@@ -1,18 +1,4 @@
 {% for journal in journals %}
-    <div class="card alig-center mt-3"> 
-        <div class="card-body contact-list-item" hx-swap="innerHTML" hx-target="#content">
-            <div class="contact-list-item-details" hx-get="/journals/{{ journal.JournalID }}">
-                <div>Name: <strong>{{ journal.Name }}</strong></div>
-                <div><a class="link-primary link-underline-dark" href="{{ journal.Url }}">website</a></div>
-                <div>PrintISSN: {{ journal.PrintISSN }}</div>
-                <div>EletronicISSN: {{ journal.EletronicISSN }}</div>
-            </div>
-        </div>
-    </div>   
-{% endfor %}
-
-
-{% for journal in journals %}
     <div class="card align-center mb-3  shadow"> 
         <div class="card-body contact-list-item">
             <div class="contact-list-item-details" >

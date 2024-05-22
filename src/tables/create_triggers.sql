@@ -78,3 +78,44 @@ BEGIN
     FROM Institution
     INNER JOIN inserted i ON Institution.InstitutionID = i.InstitutionID
 END;
+
+--################################# Journal #################################--
+DROP TRIGGER IF EXISTS trg_UpdateArticlesCountJournal_Insert;
+DROP TRIGGER IF EXISTS trg_UpdateArticlesCountJournal_Delete;
+DROP TRIGGER IF EXISTS trg_UpdateArticlesCountJournal_Update;
+--------------------------------------------------------------------------------
+
+CREATE TRIGGER trg_UpdateArticlesCountJournal_Insert
+ON Article AFTER INSERT AS
+BEGIN
+    UPDATE Journal
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Article WHERE Article.JournalID = Journal.JournalID)
+    FROM Journal
+    INNER JOIN inserted i ON Journal.JournalID = i.JournalID
+END;
+
+CREATE TRIGGER trg_UpdateArticlesCountJournal_Delete
+ON Article AFTER DELETE AS
+BEGIN
+    UPDATE Journal
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Article WHERE Article.JournalID = Journal.JournalID)
+    FROM Journal
+    INNER JOIN deleted d ON Journal.JournalID = d.JournalID
+END;
+
+CREATE TRIGGER trg_UpdateArticlesCountJournal_Update
+ON Article AFTER UPDATE AS
+BEGIN
+    -- Update previous ArticlesCount
+    UPDATE Journal
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Article WHERE Article.JournalID = Journal.JournalID)
+    FROM Journal
+    INNER JOIN deleted d ON Journal.JournalID = d.JournalID
+
+    -- Update current ArticlesCount
+    UPDATE Journal
+    SET ArticlesCount = (SELECT COALESCE(COUNT(*), 0) FROM Article WHERE Article.JournalID = Journal.JournalID)
+    FROM Journal
+    INNER JOIN inserted i ON Journal.JournalID = i.JournalID
+END;
+

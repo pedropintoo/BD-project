@@ -48,3 +48,21 @@ DROP FUNCTION IF EXISTS ListAllTopics;
 --         Topic.ArticlesCount
 --     FROM Topic 
 -- );
+
+--################################# Journal #################################--
+DROP FUNCTION IF EXISTS ListAllJournals;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllJournals()
+RETURNS TABLE AS
+RETURN
+(
+    SELECT 
+        Journal.JournalID, 
+        Journal.Name, 
+        Journal.PrintISSN,
+        Journal.[Url],
+        Journal.ArticlesCount
+    FROM Journal
+);    
+        
