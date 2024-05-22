@@ -507,32 +507,6 @@ BEGIN
     ORDER BY [Name]
 END;
 
--- details
--- class JournalDetails(NamedTuple):
---     Name: str
---     PrintISSN: str
---     EletronicISSN: str
---     Url: str
---     Publisher: str
---     ArticlesCount: int
---     VolumesCount: int
---     VolumesList: dict[str, list[str]] # dict of volume number and list of articles
-
--- IF OBJECT_ID('Journal') IS NULL
--- BEGIN
--- CREATE TABLE Journal(
---     JournalID           VARCHAR(40)     NOT NULL,
---     [Name]              VARCHAR(100),
---     PrintISSN           VARCHAR(9),
---     EletronicISSN       VARCHAR(9),
---     [Url]               VARCHAR(100),
---     Publisher           VARCHAR(50),
---     ArticlesCount               INT,
---     PRIMARY KEY (JournalID),
--- )
--- END;
-
-
 CREATE PROCEDURE ListJournalDetails
     @JournalID VARCHAR(40)
 AS
@@ -573,13 +547,13 @@ BEGIN
     BEGIN TRANSACTION
 
     BEGIN TRY
-        -- Remove related records in the JournalVolume table
-        DELETE FROM JournalVolume
-        WHERE JournalID = @JournalID
-
-        -- Update related records in the Article table -> Set JournalID and Volume to NULL
+        -- Update related records in the Article table
         UPDATE Article
         SET JournalID = NULL, Volume = NULL
+        WHERE JournalID = @JournalID
+
+        -- Remove related records in the JournalVolume table
+        DELETE FROM JournalVolume
         WHERE JournalID = @JournalID
 
         -- Remove related records in the Favorite_Journal table

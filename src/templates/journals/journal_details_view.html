@@ -13,17 +13,52 @@
             <p><strong>Articles Count:</strong> {{ journal.ArticlesCount }}</p>
 
             {% if journal.ArticlesCount > 0 %}
+            <style>
+                .accordion {
+                    --bs-accordion-btn-color: rgb(0, 0, 0);
+                    --bs-accordion-btn-bg: rgb(223, 234, 255);
+                    --bs-accordion-active-color: rgb(0, 0, 0);
+                    --bs-accordion-active-bg: rgb(223, 234, 255);
+                }
+                .accordion-button{    
+                    padding: 10px 15px; 
+                    background-color: #f5f5f5;
+                }
+            </style>  
             <div>
                 <br>
-                <ul class="list-group">
-                    {% for volume in journal.VolumesList %}
-                        <li class="list-group-item">
-                            <i class="fas fa-file-alt"></i> {{ volume }}
-                        </li>
-                    {% endfor %}
+                <ul class="list-group"> 
+                    <div class="accordion accordion-flush" id="accordionFlushExample">
+                        {% for key in journal.VolumesList %}
+                        <div class="accordion-item py-2">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" 
+                                        type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#flush-collapse{{ loop.index }}" 
+                                        aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" 
+                                        aria-controls="flush-collapse{{ loop.index }}">
+                                    <i class="fa-solid fa-code-branch me-3"></i> <strong>Volume {{ key[0] }} in {{ key[1] }} </strong>
+                                </button>
+                            </h2>
+                            <div id="flush-collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#accordionFlushExample">
+                                <div class="accordion-body">
+                                    <ul class="list-group">
+                                        {% for articleName in journal.VolumesList[key] %}
+                                        <li class="list-group-item">
+                                            <i class="fas fa-file-alt"></i> {{ articleName }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                                      
                 </ul>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+

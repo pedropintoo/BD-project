@@ -44,8 +44,8 @@ CREATE TABLE Article(
     DOI                 VARCHAR(50),
     StartPage           INT,
     EndPage             INT,
-    JournalID           VARCHAR(40)     NOT NULL,
-    Volume              INT             NOT NULL,
+    JournalID           VARCHAR(40),
+    Volume              INT,
     PRIMARY KEY (ArticleID),
     FOREIGN KEY (JournalID,Volume) REFERENCES JournalVolume(JournalID,Volume),
 )

@@ -391,7 +391,7 @@ def journals_list_by_article_count():
     journals = journal.list_all_by_article_count()
     return render_template("journals/journals_list.html", journals=journals)
 
-# show or edit specific author
+# show or edit specific journal
 @app.route("/journals/<journal_id>", methods=["GET"])
 def journal_details(journal_id: str):
     journal_details = journal.read(journal_id)
@@ -405,7 +405,7 @@ def journal_delete(journal_id: str):
         print(f"Deleting journal {journal_id}")
         journal.delete(journal_id)
         response = make_response()
-        response.headers["HX-Trigger"] = "refreshAuthorList" # refresh the journal list
+        response.headers["HX-Trigger"] = "refreshJournalList" # refresh the journal list
         return response
     except Exception as ex:
         r = make_response(render_template_string(f"{ex}"))
