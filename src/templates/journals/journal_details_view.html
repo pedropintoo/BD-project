@@ -1,3 +1,27 @@
-<div class="contact-details" id="contactDetails1">
-    <h2>ERROR </h2>
+<div class="container mt-4" id="journalsDetails1">
+    <div class="card">
+        <div class="card-header">
+            <h2>Author Details: {{ journal_id }}</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> {{ journal.Name }}</p>
+            <p><strong>URL:</strong> <a href="{{ journal.Url }}" class="text-decoration-none">{{ journal.Url }}</a></p>
+            <p><strong>ORCID:</strong> {{ journal.ORCID }}</p>
+            <p><strong>Institution Name:</strong> {{ journal.InstitutionName }}</p>
+            <p><strong>Articles Count:</strong> {{ journal.ArticlesCount }}</p>
+
+            {% if journal.VolumesCount > 0 %}
+            <div>
+                <br>
+                <ul class="list-group">
+                    {% for volume in journal.VolumesList %}
+                        <li class="list-group-item">
+                            <i class="fas fa-file-alt"></i> {{ volume }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>

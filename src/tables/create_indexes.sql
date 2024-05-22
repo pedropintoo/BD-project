@@ -28,3 +28,10 @@ IF IndexProperty(Object_ID('Institution'), 'IDX_Institution_AuthorsCount', 'Inde
 -- CREATE NONCLUSTERED INDEX IDX_Institution_AuthorsCount
 -- ON Institution (AuthorsCount);
 
+--################################# Journal #################################--
+-- indexes
+IF IndexProperty(Object_ID('Journal'), 'IDX_Journal_Name', 'IndexId') IS NOT NULL
+    DROP INDEX IDX_Journal_Name ON Journal;
+IF IndexProperty(Object_ID('Journal'), 'IDX_Journal_ArticlesCount', 'IndexId') IS NOT NULL    
+    DROP INDEX IDX_Journal_ArticlesCount ON Journal;
+-----------------------------------------------------------------------------    

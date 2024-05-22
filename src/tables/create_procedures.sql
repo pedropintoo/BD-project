@@ -1,4 +1,3 @@
-
 --################################# Author #################################--
 -- listing
 DROP PROCEDURE IF EXISTS OrderByAuthorName;
@@ -378,3 +377,198 @@ DROP PROCEDURE IF EXISTS CreateTopic;
 --     FROM Article
 --     WHERE Article.TopicID = @TopicID
 -- END;
+
+
+--################################# Journal #################################--
+-- listing
+DROP PROCEDURE IF EXISTS OrderByJournalName;
+DROP PROCEDURE IF EXISTS OrderBySearchJournalName;
+DROP PROCEDURE IF EXISTS OrderByVolumesCount;
+-- details
+DROP PROCEDURE IF EXISTS ListJournalDetails;
+DROP PROCEDURE IF EXISTS GetJournalIDByName;
+-- delete/update/create
+DROP PROCEDURE IF EXISTS DeleteJournal;
+DROP PROCEDURE IF EXISTS ValidateJournalName;
+DROP PROCEDURE IF EXISTS UpdateJournal;
+DROP PROCEDURE IF EXISTS CreateJournal;
+--------------------------------------------------------------------------------
+
+-- listing
+CREATE PROCEDURE OrderByJournalName
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllJournals()
+    ORDER BY [Name]
+END;
+
+CREATE PROCEDURE OrderByArticlesCount
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllJournals()
+    ORDER BY ArticlesCount DESC
+END;
+
+CREATE PROCEDURE OrderBySearchJournalName (@JournalName NVARCHAR(100))
+AS
+BEGIN
+    SELECT * FROM ListAllJournals() 
+    WHERE [Name] LIKE @JournalName + '%'
+    ORDER BY [Name]
+END;
+
+-- details
+-- class JournalDetails(NamedTuple):
+--     Name: str
+--     PrintISSN: str
+--     EletronicISSN: str
+--     Url: str
+--     Publisher: str
+--     ArticlesCount: int
+--     VolumesCount: int
+--     VolumesList: dict[str, list[str]] # dict of volume number and list of articles
+
+-- IF OBJECT_ID('Journal') IS NULL
+-- BEGIN
+-- CREATE TABLE Journal(
+--     JournalID           VARCHAR(40)     NOT NULL,
+--     [Name]              VARCHAR(100),
+--     PrintISSN           VARCHAR(9),
+--     EletronicISSN       VARCHAR(9),
+--     [Url]               VARCHAR(100),
+--     Publisher           VARCHAR(50),
+--     ArticlesCount               INT,
+--     PRIMARY KEY (JournalID),
+-- )
+-- END;
+
+
+CREATE PROCEDURE ListJournalDetails
+    @JournalID VARCHAR(40)
+AS
+BEGIN
+    SELECT 
+        Journal.[Name], 
+        Journal.PrintISSN, 
+        Journal.EletronicISSN, 
+        Journal.[Url], 
+        Journal.Publisher, 
+        Journal.ArticlesCount
+    FROM Journal
+    WHERE Journal.JournalID = @JournalID
+
+    -- list of volumes    
+    SELECT JournalVolume.Volume
+    FROM JournalVolume
+    WHERE JournalVolume.JournalID = @JournalID
+END;
+
+-- delete/update/create
+CREATE PROCEDURE DeleteJournal
+    @JournalID VARCHAR(40)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- start transaction
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        -- Remove related records in the JournalVolume table
+        DELETE FROM JournalVolume
+        WHERE JournalID = @JournalID
+
+        -- Update related records in the Article table -> Set JournalID and Volume to NULL
+        UPDATE Article
+        SET JournalID = NULL, Volume = NULL
+        WHERE JournalID = @JournalID
+
+        -- Remove related records in the Favorite_Journal table
+        DELETE FROM Favorite_Journal
+        WHERE JournalID = @JournalID
+ 
+        -- Remove the journal
+        DELETE FROM Journal
+        WHERE JournalID = @JournalID
+
+        -- Commit the transaction
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        -- Rollback the transaction in case of an error
+        ROLLBACK TRANSACTION
+
+        -- Rethrow the error
+        THROW
+    END CATCH
+END;
+
+CREATE PROCEDURE ValidateJournalName
+    @Name NVARCHAR(100)
+AS
+BEGIN
+    IF @Name IS NULL
+    BEGIN
+        RAISERROR ('Journal name cannot be empty.', 16, 1)
+        RETURN
+    END
+END;
+
+
+CREATE PROCEDURE UpdateJournal
+    @JournalID VARCHAR(40),
+    @Name NVARCHAR(100),
+    @PrintISSN VARCHAR(9),
+    @EletronicISSN VARCHAR(9),
+    @Url VARCHAR(100),
+    @Publisher VARCHAR(50)
+AS
+BEGIN 
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @PrintISSN = NULLIF(@PrintISSN, '')
+    SET @EletronicISSN = NULLIF(@EletronicISSN, '')
+    SET @Url = NULLIF(@Url, '')
+    SET @Publisher = NULLIF(@Publisher, '')
+
+    EXEC ValidateJournalName @Name -- exception may be thrown
+
+    UPDATE Journal
+    SET [Name] = @Name, PrintISSN = @PrintISSN, EletronicISSN = @EletronicISSN, [Url] = @Url, Publisher = @Publisher
+    WHERE JournalID = @JournalID
+
+END;
+
+
+CREATE PROCEDURE CreateJournal
+    @JournalID VARCHAR(40),
+    @Name NVARCHAR(100),
+    @PrintISSN VARCHAR(9),
+    @EletronicISSN VARCHAR(9),
+    @Url VARCHAR(100),
+    @Publisher VARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @PrintISSN = NULLIF(@PrintISSN, '')
+    SET @EletronicISSN = NULLIF(@EletronicISSN, '')
+    SET @Url = NULLIF(@Url, '')
+    SET @Publisher = NULLIF(@Publisher, '')
+
+    EXEC ValidateJournalName @Name -- exception may be thrown
+
+    INSERT INTO Journal (JournalID, [Name], PrintISSN, EletronicISSN, [Url], Publisher, ArticlesCount)
+    VALUES (@JournalID, @Name, @PrintISSN, @EletronicISSN, @Url, @Publisher, 0)
+END;        
+
+
+
+
+

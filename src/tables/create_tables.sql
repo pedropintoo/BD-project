@@ -18,6 +18,7 @@ CREATE TABLE Journal(
     EletronicISSN       VARCHAR(9),
     [Url]               VARCHAR(100),
     Publisher           VARCHAR(50),
+    ArticlesCount               INT,
     PRIMARY KEY (JournalID),
 )
 END;

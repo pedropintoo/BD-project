@@ -56,7 +56,7 @@ class Journal(NamedTuple):
     PrintISSN: str
     EletronicISSN: str
     Url: int
-    Publisher: int  
+    Publisher: int
 
 class JournalVolume(NamedTuple):
     JournalID: str
