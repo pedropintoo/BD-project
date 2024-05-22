@@ -54,10 +54,14 @@ BEGIN
     WHERE Author.AuthorID = @AuthorID
 
     -- list of articles
-    SELECT Article.Title 
-    FROM Wrote_by 
-    INNER JOIN Article ON Wrote_by.ArticleID = Article.ArticleID
-    WHERE Wrote_by.AuthorID = @AuthorID
+    SELECT Article.Title
+    FROM Article
+    INNER JOIN (
+        SELECT ArticleID
+        FROM Wrote_by
+        WHERE AuthorID = @AuthorID
+    ) AS AuthorArticles ON Article.ArticleID = AuthorArticles.ArticleID
+
 END;
 
 CREATE PROCEDURE GetInstitutionIDByName
@@ -371,10 +375,14 @@ BEGIN
     WHERE Topic.TopicID = @TopicID
 
     -- list of articles
-    SELECT Article.Title 
-    FROM Belongs_to
-    INNER JOIN Article ON Belongs_to.ArticleID = Article.ArticleID
-    WHERE Belongs_to.TopicID = @TopicID
+    SELECT Article.Title
+    FROM Article
+    INNER JOIN (
+        SELECT ArticleID
+        FROM Belongs_to
+        WHERE TopicID = @TopicID
+    ) AS TopicArticles ON Article.ArticleID = TopicArticles.ArticleID
+
 END;
 
 -- delete/update/create
@@ -539,10 +547,15 @@ BEGIN
     FROM Journal
     WHERE Journal.JournalID = @JournalID
 
-    -- list of volumes    
-    SELECT JournalVolume.Volume
+    -- list of articles per volume   
+    SELECT JournalVolume.JournalID, JournalVolume.Volume, JournalVolume.PublicationDate, Title
     FROM JournalVolume
-    WHERE JournalVolume.JournalID = @JournalID
+    INNER JOIN (
+        SELECT JournalID, Volume, Title
+        FROM Article
+        WHERE Article.JournalID = @JournalID
+    ) AS JournalArticles ON JournalVolume.JournalID = JournalArticles.JournalID AND JournalVolume.Volume = JournalArticles.Volume
+
 END;
 
 -- delete/update/create

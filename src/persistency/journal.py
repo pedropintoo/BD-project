@@ -84,7 +84,7 @@ def create(journal_id, journal):
 
         conn.commit()
 
-def list_all_by_volume_count():
+def list_all_by_article_count():
     with create_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("EXEC OrderByArticlesCount_journal;")

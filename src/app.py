@@ -386,9 +386,9 @@ def journals_list():
     journals = journal.list_all()
     return render_template("journals/journals_list.html", journals=journals)
 
-@app.route("/journals-list-volume-count", methods=["GET"])
-def journals_list_by_volume_count():
-    journals = journal.list_all_by_volume_count()
+@app.route("/journals-list-article-count", methods=["GET"])
+def journals_list_by_article_count():
+    journals = journal.list_all_by_article_count()
     return render_template("journals/journals_list.html", journals=journals)
 
 # show or edit specific author

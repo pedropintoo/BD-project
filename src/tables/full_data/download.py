@@ -358,6 +358,9 @@ def insert_journals(buffer):
         
         journal_name = journal_data["name"]
         
+        if journal_data["id"] == 0:
+            continue
+
         # Create Journal object
         journal = Journal(
             JournalID = journal_data["id"],
@@ -480,32 +483,35 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             pages = pages.replace('\n', '').replace('\\n', '').strip()
         volume = journal_info.get("volume")
         if volume is None:
-            volume = -1
+            continue
         journalName = journal_info.get("name")
         
         journalID = str(abs(hash(journalName)) % (10 ** 40))
         
-        if journalID != 0:
-            # create journal object
-            journal = Journal(
-                JournalID = journalID,
-                Name = journalName,
-                PrintISSN = None,
-                EletronicISSN = None,
-                Url = None,
-                Publisher = None,
-                ArticlesCount = 0
-            )
+        if journalID == "0":
+            continue
 
-            journals.append(journal)
+        # create journal object
+        journal = Journal(
+            JournalID = journalID,
+            Name = journalName,
+            PrintISSN = None,
+            EletronicISSN = None,
+            Url = None,
+            Publisher = None,
+            ArticlesCount = 0
+        )
+
+        journals.append(journal)
         
+        print( article_data)
         # create journal volume object
         journalVolume = JournalVolume(
             JournalID = journalID,
             Volume = volume,
-            PublicationDate = None,
+            PublicationDate = article_data["publicationDate"],
         )
-
+        
         journalVolumes.append(journalVolume)
         
         # Check if the data format is correct
@@ -592,13 +598,13 @@ if __name__ == '__main__':
 
     # Use some data from the downloaded files
 
-    buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
-    print("buffer length: ", len(buffer))
-    inc = 25
-    max = 600
-    for i in range(0, max, inc):
-        insert_journals(buffer[i:i+inc])
-        print("inserted [", i, ":", i+inc, "].")
+    # buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
+    # print("buffer length: ", len(buffer))
+    # inc = 25
+    # max = 600
+    # for i in range(0, max, inc):
+    #     insert_journals(buffer[i:i+inc])
+    #     print("inserted [", i, ":", i+inc, "].")
     
     buffer = gzip.open("tables\\full_data\\authors\\authors0.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))
