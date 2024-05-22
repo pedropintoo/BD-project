@@ -37,17 +37,18 @@ RETURN
 DROP FUNCTION IF EXISTS ListAllTopics;
 ------------------------------------------------------------------------------
 
--- CREATE FUNCTION ListAllTopics()
--- RETURNS TABLE AS
--- RETURN
--- (
---     SELECT 
---         Topic.TopicID, 
---         Topic.Name, 
---         Topic.Description,
---         Topic.ArticlesCount
---     FROM Topic 
--- );
+CREATE FUNCTION ListAllTopics()
+RETURNS TABLE AS
+RETURN
+(
+    SELECT 
+        Topic.TopicID, 
+        Topic.Name, 
+        Topic.Description,
+        Topic.ArticlesCount
+    FROM Topic 
+);
+
 
 --################################# Journal #################################--
 DROP FUNCTION IF EXISTS ListAllJournals;

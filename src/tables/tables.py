@@ -38,7 +38,8 @@ class Institution(NamedTuple):
 class Topic(NamedTuple):
     TopicID: str
     Name: str
-    Description: str    
+    Description: str
+    ArticlesCount: int  
 
 class Article(NamedTuple):
     ArticleID: str
@@ -56,7 +57,8 @@ class Journal(NamedTuple):
     PrintISSN: str
     EletronicISSN: str
     Url: int
-    Publisher: int
+    Publisher: int  
+    ArticlesCount: int
 
 class JournalVolume(NamedTuple):
     JournalID: str

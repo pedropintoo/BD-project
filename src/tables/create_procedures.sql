@@ -54,10 +54,14 @@ BEGIN
     WHERE Author.AuthorID = @AuthorID
 
     -- list of articles
-    SELECT Article.Title 
-    FROM Wrote_by 
-    INNER JOIN Article ON Wrote_by.ArticleID = Article.ArticleID
-    WHERE Wrote_by.AuthorID = @AuthorID
+    SELECT Article.Title
+    FROM Article
+    INNER JOIN (
+        SELECT ArticleID
+        FROM Wrote_by
+        WHERE AuthorID = @AuthorID
+    ) AS AuthorArticles ON Article.ArticleID = AuthorArticles.ArticleID
+
 END;
 
 CREATE PROCEDURE GetInstitutionIDByName
@@ -319,7 +323,7 @@ END;
 -- listing
 DROP PROCEDURE IF EXISTS OrderByTopicName;
 DROP PROCEDURE IF EXISTS OrderBySearchTopicName;
-DROP PROCEDURE IF EXISTS OrderByArticlesCount;
+DROP PROCEDURE IF EXISTS OrderByArticlesCount_topic; -- slightly different name
 -- details
 DROP PROCEDURE IF EXISTS ListTopicDetails;
 -- delete/update/create
@@ -329,61 +333,145 @@ DROP PROCEDURE IF EXISTS UpdateTopic;
 DROP PROCEDURE IF EXISTS CreateTopic;
 --------------------------------------------------------------------------------
 
--- -- listing
--- CREATE PROCEDURE OrderByTopicName
--- AS
--- BEGIN
---     SELECT * 
---     FROM ListAllTopics()
---     ORDER BY [Name]
--- END;
+-- listing
+CREATE PROCEDURE OrderByTopicName
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllTopics()
+    ORDER BY [Name]
+END;
 
--- CREATE PROCEDURE OrderByArticlesCount
--- AS
--- BEGIN
---     SELECT * 
---     FROM ListAllTopics()
---     ORDER BY ArticlesCount DESC
--- END;
+CREATE PROCEDURE OrderByArticlesCount_topic
+AS
+BEGIN
+    SELECT * 
+    FROM ListAllTopics()
+    ORDER BY ArticlesCount DESC
+END;
 
--- CREATE PROCEDURE OrderBySearchTopicName (@TopicName NVARCHAR(50))
--- AS
--- BEGIN
---     SELECT * FROM ListAllTopics() 
---     WHERE [Name] LIKE @TopicName + '%'
---     ORDER BY [Name]
--- END;
+CREATE PROCEDURE OrderBySearchTopicName (@TopicName NVARCHAR(50))
+AS
+BEGIN
+    SELECT * FROM ListAllTopics() 
+    WHERE [Name] LIKE @TopicName + '%'
+    ORDER BY [Name]
+END;
 
--- -- details
--- CREATE PROCEDURE ListTopicDetails
---     @TopicID VARCHAR(10)
--- AS
--- BEGIN
---     SELECT 
---         Topic.Name, 
---         Topic.Description,
---         Topic.ArticlesCount
---     FROM Topic
---     WHERE Topic.TopicID = @TopicID
+-- details
+CREATE PROCEDURE ListTopicDetails
+    @TopicID VARCHAR(10)
+AS
+BEGIN
 
---     -- Count users who are interested in this topic
---     SELECT COUNT(*) AS UsersCount
---     FROM Interested_in
---     WHERE TopicID = @TopicID
---     GROUP BY TopicID
+    -- Count users who are interested in this topic
+    SELECT COALESCE(COUNT(*), 0) FROM Interested_in WHERE TopicID = @TopicID
 
---     -- list of articles
---     SELECT Article.Title 
---     FROM Article
---     WHERE Article.TopicID = @TopicID
--- END;
+    SELECT 
+        Topic.Name, 
+        Topic.Description,
+        Topic.ArticlesCount
+    FROM Topic
+    WHERE Topic.TopicID = @TopicID
+
+    -- list of articles
+    SELECT Article.Title
+    FROM Article
+    INNER JOIN (
+        SELECT ArticleID
+        FROM Belongs_to
+        WHERE TopicID = @TopicID
+    ) AS TopicArticles ON Article.ArticleID = TopicArticles.ArticleID
+
+END;
+
+-- delete/update/create
+CREATE PROCEDURE DeleteTopic
+    @TopicID VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- start transaction
+    BEGIN TRANSACTION
+
+    BEGIN TRY
+        -- Remove related records
+        DELETE FROM Interested_in
+        WHERE TopicID = @TopicID
+
+        DELETE FROM Belongs_to
+        WHERE TopicID = @TopicID
+
+        -- Delete the topic
+        DELETE FROM Topic
+        WHERE TopicID = @TopicID
+        -- Commit the transaction
+        COMMIT TRANSACTION
+    END TRY
+    BEGIN CATCH
+        -- Rollback the transaction in case of an error
+        ROLLBACK TRANSACTION
+
+        -- Rethrow the error
+        THROW
+    END CATCH
+END;
+
+CREATE PROCEDURE ValidateTopicName
+    @Name NVARCHAR(50)
+AS
+BEGIN
+    IF @Name IS NULL
+    BEGIN
+        RAISERROR ('Topic name cannot be empty.', 16, 1)
+        RETURN
+    END
+END;
+
+CREATE PROCEDURE UpdateTopic
+    @TopicID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Description NVARCHAR(300)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+        SET @Description = NULLIF(@Description, '')
+
+    EXEC ValidateTopicName @Name -- exception may be thrown
+
+    UPDATE Topic
+    SET [Name] = @Name, [Description] = @Description
+    WHERE TopicID = @TopicID
+END;
+
+CREATE PROCEDURE CreateTopic
+    @TopicID VARCHAR(10),
+    @Name NVARCHAR(50),
+    @Description NVARCHAR(300)
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    -- normalize the args
+    SET @Name = NULLIF(@Name, '')
+    SET @Description = NULLIF(@Description, '')
+
+    EXEC ValidateTopicName @Name -- exception may be thrown
+
+    INSERT INTO Topic (TopicID, [Name], [Description], ArticlesCount) 
+    VALUES (@TopicID, @Name, @Description, 0)
+END;
 
 
 --################################# Journal #################################--
 -- listing
 DROP PROCEDURE IF EXISTS OrderByJournalName;
 DROP PROCEDURE IF EXISTS OrderBySearchJournalName;
-DROP PROCEDURE IF EXISTS OrderByVolumesCount;
+DROP PROCEDURE IF EXISTS OrderByArticlesCount_journal; -- slightly different name
 -- details
 DROP PROCEDURE IF EXISTS ListJournalDetails;
 DROP PROCEDURE IF EXISTS GetJournalIDByName;
@@ -403,7 +491,7 @@ BEGIN
     ORDER BY [Name]
 END;
 
-CREATE PROCEDURE OrderByArticlesCount
+CREATE PROCEDURE OrderByArticlesCount_journal
 AS
 BEGIN
     SELECT * 
@@ -449,6 +537,9 @@ CREATE PROCEDURE ListJournalDetails
     @JournalID VARCHAR(40)
 AS
 BEGIN
+    -- Count users who are interested in this topic
+    SELECT COALESCE(COUNT(*), 0) FROM Favorite_Journal WHERE JournalID = @JournalID
+
     SELECT 
         Journal.[Name], 
         Journal.PrintISSN, 
@@ -459,10 +550,16 @@ BEGIN
     FROM Journal
     WHERE Journal.JournalID = @JournalID
 
-    -- list of volumes    
-    SELECT JournalVolume.Volume
+    -- list of articles per volume   
+    SELECT JournalVolume.JournalID, JournalVolume.Volume, JournalVolume.PublicationDate, Title
     FROM JournalVolume
-    WHERE JournalVolume.JournalID = @JournalID
+    INNER JOIN (
+        SELECT JournalID, Volume, Title
+        FROM Article
+        WHERE Article.JournalID = @JournalID
+    ) AS JournalArticles ON JournalVolume.JournalID = JournalArticles.JournalID AND JournalVolume.Volume = JournalArticles.Volume
+    ORDER BY JournalVolume.PublicationDate DESC
+
 END;
 
 -- delete/update/create
