@@ -75,5 +75,17 @@
           <div id="content"></div>
         </div>  
       </div>
+
+      <script>
+        document.getElementById('btn1').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('btn2').classList.remove('active');
+        });
+    
+        document.getElementById('btn2').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('btn1').classList.remove('active');
+        });
+    </script>
 </body>
 </html>

@@ -87,7 +87,7 @@ def create(journal_id, journal):
 def list_all_by_volume_count():
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("EXEC OrderByArticlesCount;")
+        cursor.execute("EXEC OrderByArticlesCount_journal;")
         rows = cursor.fetchall()
         return [JournalSimple(
             row.JournalID or "Not found",

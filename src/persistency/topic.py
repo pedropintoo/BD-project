@@ -22,6 +22,7 @@ class TopicForm(NamedTuple):
 class TopicDetails(NamedTuple):
     Name: str
     Description: str
+    UsersCount: int
     ArticlesCount: int
     ArticlesList: list[str]    
 
@@ -36,15 +37,20 @@ def read(topic_id: str) -> TopicDetails:
         cursor = conn.cursor()
         cursor.execute("EXEC ListTopicDetails @TopicID = ?", topic_id)
 
+        # copy the users interest counter to a new variable
+        users_count = cursor.fetchone()[0]
+        cursor.nextset()
+
         topic_row = cursor.fetchone()
         topic_details = TopicDetails(
             topic_row[0] or "",
             topic_row[1] or "",
+            users_count or 0,
             topic_row[2] or 0,
             []  # start empty
         )
 
-        # copy the author details to a new variable
+        # copy the articles details to a new variable
         cursor.nextset()
         articles = cursor.fetchall()
         articles_list = [article[0] for article in articles]
@@ -69,7 +75,7 @@ def create(topic_id, topic):
 def list_all_by_article_count():
     with create_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("EXEC OrderByArticlesCount;")
+        cursor.execute("EXEC OrderByArticlesCount_topic;")
         rows = cursor.fetchall()
 
         return [TopicSimple(

@@ -319,7 +319,7 @@ END;
 -- listing
 DROP PROCEDURE IF EXISTS OrderByTopicName;
 DROP PROCEDURE IF EXISTS OrderBySearchTopicName;
-DROP PROCEDURE IF EXISTS OrderByArticlesCount;
+DROP PROCEDURE IF EXISTS OrderByArticlesCount_topic; -- slightly different name
 -- details
 DROP PROCEDURE IF EXISTS ListTopicDetails;
 -- delete/update/create
@@ -338,7 +338,7 @@ BEGIN
     ORDER BY [Name]
 END;
 
-CREATE PROCEDURE OrderByArticlesCount
+CREATE PROCEDURE OrderByArticlesCount_topic
 AS
 BEGIN
     SELECT * 
@@ -359,6 +359,10 @@ CREATE PROCEDURE ListTopicDetails
     @TopicID VARCHAR(10)
 AS
 BEGIN
+
+    -- Count users who are interested in this topic
+    SELECT COALESCE(COUNT(*), 0) FROM Interested_in WHERE TopicID = @TopicID
+
     SELECT 
         Topic.Name, 
         Topic.Description,
@@ -366,9 +370,7 @@ BEGIN
     FROM Topic
     WHERE Topic.TopicID = @TopicID
 
-    -- Count users who are interested in this topic
-    SELECT COALESCE(COUNT(*), 0) AS UsersCount FROM Interested_in WHERE TopicID = @TopicID
-        -- list of articles
+    -- list of articles
     SELECT Article.Title 
     FROM Belongs_to
     INNER JOIN Article ON Belongs_to.ArticleID = Article.ArticleID
@@ -461,7 +463,7 @@ END;
 -- listing
 DROP PROCEDURE IF EXISTS OrderByJournalName;
 DROP PROCEDURE IF EXISTS OrderBySearchJournalName;
-DROP PROCEDURE IF EXISTS OrderByArticlesCount;
+DROP PROCEDURE IF EXISTS OrderByArticlesCount_journal; -- slightly different name
 -- details
 DROP PROCEDURE IF EXISTS ListJournalDetails;
 DROP PROCEDURE IF EXISTS GetJournalIDByName;
@@ -481,7 +483,7 @@ BEGIN
     ORDER BY [Name]
 END;
 
-CREATE PROCEDURE OrderByArticlesCount
+CREATE PROCEDURE OrderByArticlesCount_journal
 AS
 BEGIN
     SELECT * 
