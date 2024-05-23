@@ -11,7 +11,8 @@ app = Flask(__name__)
 @app.route("/")
 def base():
     graph1_data = chart.Graph1Top3TopicsPerYear()
-    return render_template("index.html", graph1_data=graph1_data)
+    graph2_data = chart.Graph2MostProductiveAuthorsByTopic()
+    return render_template("index.html", graph1_data=graph1_data, graph2_data=graph2_data)
 
 ## Authors
 

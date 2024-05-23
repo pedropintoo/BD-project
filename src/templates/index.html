@@ -62,10 +62,41 @@
         </nav>
       <div>
     </div>
+
+    <div id="my-chart2" class="shadow p-5 pt-2 mt-5 row">
+      <h2 class="my-5 h2">
+        Most Productive <code>Authors</code> by <code>Topic</code>.
+      </h2>
+      <div class="col-9">
+        <table class="charts-css bar show-heading datasets-spacing-8 show-labels col-6 overflow-x-auto w-100 overflow-y-none">
+          
+
+            {% for author, value in graph2_data.DataSets.values() %}
+            <tr >
+              <th scope="row"> {{ author }} </th>
+              <td class="py-4" style="--size: calc( {{ value }} / {{graph2_data.max}} )"> <span class="data me-3"> {{ value }} </span> </td>
+            </tr>
+            {% endfor %}  
+                    
+        </table>
+        <div class="primary-axis text-center"> NumbArticles </div>
+      </div>
+
+
+      <div class="col-3 h-50">
+        <ul class="charts-css legend legend-square">
+          {% for topic in graph2_data.DataSets.keys() %}
+            <li> {{ topic }} </li>
+          {% endfor %}
+        </ul>
+      </div>
+     </div>
+
+
       <div id="my-chart" class="shadow p-5 pt-2 mt-5">
         <table class="charts-css column show-heading data-spacing-20 datasets-spacing-2 show-labels multiple col-6 overflow-x-auto w-100 overflow-y-none">
           <h2 class="my-5 h2">
-            Top 3 <code>Topics</code> with more <code>Articles</code> in <code>Journals</code> for each year <code>Year</code>.
+            Top 3 <code>Topics</code> with more <code>Articles</code> in <code>Journals</code> for each year.
           </h2>
 
             {% for year, values in graph1_data.DataSets.items() %}
@@ -89,6 +120,9 @@
                     
         </table>
        </div>
+
+
+
     </div>
 
 </body>

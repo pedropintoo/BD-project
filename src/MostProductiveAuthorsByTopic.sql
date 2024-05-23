@@ -1,7 +1,6 @@
 use p5g1;
 
 --MostProductiveAuthorsByTopic
-
 SELECT 
     T.TopicID,
     T.[Name] AS TopicName,
