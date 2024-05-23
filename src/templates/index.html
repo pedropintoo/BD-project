@@ -9,20 +9,40 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    
-</head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/charts.css/dist/charts.min.css">
+
+    <style>
+      #my-chart .column caption {
+        font-size: 1rem;
+        font-weight: bold;
+        line-height: 1.25rem;
+      }
+      #my-chart .column {
+        --aspect-ratio: 21 / 4;
+      }
+      #my-chart .column td {
+        font-size: 0.875rem;
+        font-weight: bold;
+        line-height: 1.25rem;
+        width: 100px;
+      }
+    </style>
+
+  </head>
 <body>
+
     <div class="container">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-              <a class="navbar-brand" href=".">AcademiQuest</a>
+              <a class="navbar-brand active" href=".">AcademiQuest</a>
               <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
               </button>
               <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                   <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/authors">Authors</a>
+                    <a class="nav-link" aria-current="page" href="/authors">Authors</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" href="/institutions">Institutions</a>
@@ -40,6 +60,36 @@
               </div>
             </div>
         </nav>
+      <div>
     </div>
+      <div id="my-chart" class="shadow p-5 pt-2 mt-5">
+        <table class="charts-css column show-heading data-spacing-20 datasets-spacing-2 show-labels multiple col-6 overflow-x-auto w-100 overflow-y-none">
+          <h2 class="my-5 h2">
+            Top 3 <code>Topics</code> per <code>Year</code>.
+          </h2>
+
+            {% for year, values in graph1_data.DataSets.items() %}
+            <tr>
+              <th scope="row"> {{ year }} </th>
+              {% for value in values %}  
+                {% if loop.index0 == 0 %}
+                <td style="--size: 1; --color: rgba(255 220 90 / 75%) ">
+                  <span class="data text-center"> {{ value[1] }} <br> {{ value[0] }} <br> 🥇 </span>
+                {% elif loop.index0 == 1 %}
+                <td style="--size: 0.70; --color: rgba(180 180 180 / 75%) ">
+                  <span class="data text-center"> {{ value[1] }} <br> {{ value[0] }} <br> 🥈 </span>
+                {% elif loop.index0 == 2 %}
+                <td style="--size: 0.4; --color: rgba(130 50 20 / 75%)  ">
+                  <span class="data text-center"> {{ value[1] }} <br> {{ value[0] }} <br> 🥉 </span>
+                {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}  
+                    
+        </table>
+       </div>
+    </div>
+
 </body>
 </html>

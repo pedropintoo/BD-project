@@ -615,7 +615,7 @@ if __name__ == '__main__':
     print("buffer length: ", len(buffer))
     inc = 100
     max = 200000
-    for i in range(0, max, inc):
+    for i in range(70000, max, inc):
         insert_authors_and_institutions(buffer[i:i+inc])
         print("inserted [", i, ":", i+inc, "].")
 

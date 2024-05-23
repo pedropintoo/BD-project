@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, make_response, render_template, render_template_string, request
 
-from persistency import author, institution, article, topic, journal
+from persistency import author, institution, article, topic, journal, chart
 
 from persistency.author import Author
 from persistency.session import create_connection
@@ -10,8 +10,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def base():
-    return render_template("index.html")
-
+    graph1_data = chart.Graph1Top3TopicsPerYear()
+    return render_template("index.html", graph1_data=graph1_data)
 
 ## Authors
 
