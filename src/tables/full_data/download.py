@@ -8,12 +8,52 @@ import urllib
 import gzip
 import pyodbc
 import json
+import time
 from persistency.session import create_connection
 from tables.tables import *
 
 api_key = os.getenv('API_KEY_SEMANTICSCHOLAR')  # API key
 sch = SemanticScholar(api_key=api_key)
 
+def insert_cited_by_many(cited_by):
+    with create_connection() as conn:
+        cursor = conn.cursor()
+
+        query = "INSERT INTO Cited_by VALUES (?, ?)"
+
+        try:
+            cursor.executemany(query, cited_by)
+            cursor.commit()
+        except pyodbc.IntegrityError as e:
+            for cited_by in cited_by:
+                try:
+                    cursor.execute(query, cited_by)
+                    conn.commit()
+                except pyodbc.IntegrityError as e:
+                    print("Cited_by integrity error.", e)
+                except pyodbc.ProgrammingError as e:
+                    print("Cited_by creation error.", e)
+                except pyodbc.DataError as e:
+                    print("Truncated maybe. Error...", cited_by, e) 
+                except Exception as e:
+                    print("Error...", cited_by, e)
+        except pyodbc.ProgrammingError as e:
+            print("Cited_by creation error.", e)
+        except pyodbc.DataError as e:
+            for cited_by in cited_by:
+                try:
+                    cursor.execute(query, cited_by)
+                    conn.commit()
+                except pyodbc.IntegrityError as e:
+                    print("Cited_by integrity error.", e)
+                except pyodbc.ProgrammingError as e:
+                    print("Cited_by creation error.", e)
+                except pyodbc.DataError as e:
+                    print("Truncated maybe. Error...", cited_by, e) 
+                except Exception as e:
+                    print("Error...", cited_by, e)
+        except Exception as e:
+            print("Error...", cited_by, e)
 
 def insert_belongs_to_many(belongs_to):
     with create_connection() as conn:
@@ -431,7 +471,15 @@ def insert_authors_and_institutions(buffer):
     # Insert paper data
     if len(buffer_articles) > 0:
         # TODO: return authors and wrote_by!!!
-        insert_articles_and_topics_and_journalVersions(buffer_articles[0])
+        authors_extra, wrote_by_extra = insert_articles_and_topics_and_journalVersions(buffer_articles[0])
+        for author in authors_extra:
+            if author not in authors:
+                authors.append(author)
+
+        for wb in wrote_by_extra:
+            if wb not in wrote_by:
+                wrote_by.append(wb)
+
 
     # Insert author data
     insert_author_many(authors)
@@ -446,6 +494,9 @@ def insert_articles_and_topics_and_journalVersions(buffer):
     topics = []
     journalVolumes = []
     belongs_to = [] 
+    authors = []
+    wrote_by = []
+    cited_by = []
     # Read data from the file into a list of dictionaries
     for article_data in buffer:
         
@@ -472,7 +523,6 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             article_topics.append(topic.TopicID)
             topics.append(topic)
 
-        print(article_data) 
 
         journal_info = article_data["journal"]
         if journal_info == "" or journal_info is None:
@@ -491,7 +541,7 @@ def insert_articles_and_topics_and_journalVersions(buffer):
         
         if journalID == "0" or journalName is None or journalName == "":
             continue
-
+        
         # create journal object
         journal = Journal(
             JournalID = journalID,
@@ -508,7 +558,6 @@ def insert_articles_and_topics_and_journalVersions(buffer):
         if article_data["publicationDate"] is None or article_data["publicationDate"] == "":
             continue
 
-        print( article_data)
         # create journal volume object
         journalVolume = JournalVolume(
             JournalID = journalID,
@@ -549,7 +598,69 @@ def insert_articles_and_topics_and_journalVersions(buffer):
 
         for topicID in article_topics:
             belongs_to.append((topicID, article.ArticleID))
-        
+
+        for dictionary in article_data["authors"]:
+            authorID = dictionary["authorId"]
+            authorName = dictionary["name"]
+            
+            authors.append(Author(
+                AuthorID = authorID,
+                Name = authorName,
+                Url = None,
+                ORCID = None,
+                InstitutionID = None,
+                ArticlesCount = 0
+            
+            ))
+
+            wrote_by.append((article.ArticleID, authorID))
+
+        paperID = article_data["paperId"]
+
+        papers = sch.get_paper_citations(paperID)
+        for paper in papers:
+            paper = paper["citingPaper"]
+            
+            if paper is None or paper["externalIds"] is None or paper["externalIds"].get("CorpusId", None) is None:
+                continue
+
+            citingPaper = Article(
+                ArticleID = paper["externalIds"]["CorpusId"],
+                Title = paper["title"],
+                Abstract = paper["abstract"] if paper["abstract"] else None,
+                DOI = paper["externalIds"].get("DOI", None) if paper["externalIds"] else None,
+                StartPage = 0,
+                EndPage = 0,
+                JournalID = None,
+                Volume = None,
+                AuthorsCount = 0
+            )
+
+            articles.append(citingPaper)
+            cited_by.append((article.ArticleID, paper["externalIds"]["CorpusId"]))
+        time.sleep(0.1)
+        papers = sch.get_paper_references(paperID)
+        for paper in papers:
+            paper = paper["citedPaper"] 
+
+            if paper is None or paper["externalIds"] is None or paper["externalIds"].get("CorpusId", None) is None:
+                continue
+
+            citedPaper = Article(
+                ArticleID = paper["externalIds"]["CorpusId"],
+                Title = paper["title"],
+                Abstract = paper["abstract"] if paper["abstract"] else None,
+                DOI = paper["externalIds"].get("DOI", None) if paper["externalIds"] else None,
+                StartPage = 0,
+                EndPage = 0,
+                JournalID = None,
+                Volume = None,
+                AuthorsCount = 0
+            )
+
+            articles.append(citedPaper)
+            cited_by.append((paper["externalIds"]["CorpusId"], article.ArticleID))
+  
 
     # Insert topic data
     insert_topic_many(topics)
@@ -565,6 +676,11 @@ def insert_articles_and_topics_and_journalVersions(buffer):
 
     # Insert belongs_to data
     insert_belongs_to_many(belongs_to)
+
+    # insert cited_by data
+    insert_cited_by_many(cited_by)
+
+    return authors, wrote_by
 
 
 ############################################################################################################
@@ -614,8 +730,8 @@ if __name__ == '__main__':
     buffer = gzip.open("tables\\full_data\\authors\\authors0.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))
     inc = 100
-    max = 200000
-    for i in range(70000, max, inc):
+    max = 500000
+    for i in range(270000, max, inc):
         insert_authors_and_institutions(buffer[i:i+inc])
         print("inserted [", i, ":", i+inc, "].")
 
