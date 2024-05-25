@@ -27,6 +27,30 @@
         line-height: 1.25rem;
         width: 100px;
       }
+      #my-chart2 .bar {
+        --labels-size: 8rem;
+      }
+      #my-chart3 .column {
+        --labels-size: 2rem;
+      }
+      #my-chart3 .column td {
+        font-size: 0.875rem;
+        font-weight: bold;
+        line-height: 1.25rem;
+      }
+      #my-chart3 .column {
+        --aspect-ratio: 6.8 / 4;
+      }
+      .overflow-x-scroll {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .overflow-x-scroll li {
+        display: inline-block;
+        padding-right: 10px;
+      }
+
     </style>
 
   </head>
@@ -65,7 +89,7 @@
 
     <div id="my-chart2" class="shadow p-5 pt-2 mt-5 row">
       <h2 class="my-5 h2">
-        Most Productive <code>Authors</code> by <code>Topic</code>.
+        Number of <code>Articles</code> by Most Productive <code>Authors</code> per <code>Topic</code>.
       </h2>
       <div class="col-9">
         <table class="charts-css bar show-heading datasets-spacing-8 show-labels col-6 overflow-x-auto w-100 overflow-y-none">
@@ -79,7 +103,6 @@
             {% endfor %}  
                     
         </table>
-        <div class="primary-axis text-center"> NumbArticles </div>
       </div>
 
 
@@ -92,8 +115,35 @@
       </div>
      </div>
 
+     <div id="my-chart3" class="shadow p-5 pt-2 mt-5 mb-0 row">
+      <h2 class="mt-5 h2">
+        Cumulative sum of <code>Citations</code> per <code>Topic</code>.
+      </h2>
+      <div class="col-10">
+        <table class="charts-css column datasets-spacing-4 w-100">
+          
 
-      <div id="my-chart" class="shadow p-5 pt-2 mt-5">
+            {% for topic, value in graph3_data.DataSets.items() %}
+            <tr class="w-100">
+              <td class="py-2" style="--size: calc( {{ value[1] }} / {{graph3_data.max}} )"> <span class="data text-center overflow-y-auto h-100"> {{ topic }} <br> +{{ value[0] }} </span> </td>
+            </tr>
+            {% endfor %}  
+                    
+        </table>
+        </div>
+
+      <div class="col-2 h-50 ">
+        <ul class="charts-css legend legend-square overflow-x-scroll">
+          {% for topic in graph2_data.DataSets.keys() %}
+            <li class=" w-100"> {{ topic }} </li>
+          {% endfor %}
+        </ul>
+      </div>
+     </div>
+
+
+
+      <div id="my-chart" class="shadow p-5 pt-2 mt-5 mb-5">
         <table class="charts-css column show-heading data-spacing-20 datasets-spacing-2 show-labels multiple col-6 overflow-x-auto w-100 overflow-y-none">
           <h2 class="my-5 h2">
             Top 3 <code>Topics</code> with more <code>Articles</code> in <code>Journals</code> for each year.

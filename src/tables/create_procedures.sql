@@ -1,19 +1,18 @@
 --################################# Chart #################################--
 DROP PROCEDURE IF EXISTS Top3TopicsPerYear;
 DROP PROCEDURE IF EXISTS MostProductiveAuthorsByTopic;
+DROP PROCEDURE IF EXISTS RunningCitationsSumPerTopic;
 --------------------------------------------------------------------------------
 
 CREATE PROCEDURE Top3TopicsPerYear
 AS
 BEGIN
-    SELECT PublicationYear, [Name] AS TopicName, TopicCount
+    SELECT PublicationYear, T.TopicName, TopicCount
     FROM (
-        SELECT COUNT(Topic.TopicID) AS TopicCount, Topic.[Name], RANK() OVER (PARTITION BY YEAR(PublicationDate) ORDER BY COUNT(Topic.TopicID) DESC, [Name]) AS rank_pub, YEAR(PublicationDate) AS PublicationYear
-        FROM Topic
-        INNER JOIN Belongs_to ON Belongs_to.TopicID = Topic.TopicID
-        INNER JOIN Article ON Article.ArticleID = Belongs_to.ArticleID
-        INNER JOIN JournalVolume ON JournalVolume.JournalID = Article.JournalID
-        GROUP BY Topic.[Name], YEAR(PublicationDate)
+        SELECT COUNT(L.TopicID) AS TopicCount, L.TopicName AS TopicName, RANK() OVER (PARTITION BY YEAR(PublicationDate) ORDER BY COUNT(L.TopicID) DESC, L.TopicName) AS rank_pub, YEAR(PublicationDate) AS PublicationYear
+        FROM ListAllArticlesPerTopic() AS L
+        INNER JOIN JournalVolume ON JournalVolume.JournalID = L.JournalID
+        GROUP BY L.TopicName, YEAR(PublicationDate)
     ) AS T
     WHERE T.rank_pub <= 3
     ORDER BY T.PublicationYear DESC, T.rank_pub
@@ -23,36 +22,70 @@ END;
 CREATE PROCEDURE MostProductiveAuthorsByTopic
 AS
 BEGIN
-    SELECT 
-        T.TopicID,
-        T.[Name] AS TopicName,
-        A.AuthorID,
-        A.[Name] AS AuthorName,
-        TopicAuthorCounts.ArticlesCount
-    FROM 
-        Topic T
-        JOIN (
-            SELECT 
-                B.TopicID,
-                W.AuthorID,
-                COUNT(W.ArticleID) AS ArticlesCount,
-                ROW_NUMBER() OVER (PARTITION BY B.TopicID ORDER BY COUNT(W.ArticleID) DESC, A.[Name]) AS AuthorRank
-            FROM 
-                Belongs_to B
-                JOIN Article R ON B.ArticleID = R.ArticleID
-                JOIN Wrote_by W ON R.ArticleID = W.ArticleID
-                JOIN Author A ON W.AuthorID = A.AuthorID
-            GROUP BY 
-                B.TopicID, W.AuthorID, A.[Name]
-        ) AS TopicAuthorCounts ON T.TopicID = TopicAuthorCounts.TopicID
-        JOIN Author A ON TopicAuthorCounts.AuthorID = A.AuthorID
-    WHERE 
-        TopicAuthorCounts.AuthorRank = 1
-    ORDER BY 
-        ArticlesCount DESC
+    SELECT TopicName, AuthorName, ArticlesCount
+    FROM (
+        SELECT COUNT(Author.ArticlesCount) AS ArticlesCount, ROW_NUMBER() OVER (PARTITION BY TopicName ORDER BY COUNT(Author.ArticlesCount) DESC, L.TopicName) AS AuthorRank, Author.AuthorID, Author.[Name] AS AuthorName, L.TopicName
+        FROM ListAllArticlesPerTopic() AS L
+        INNER JOIN Wrote_by ON Wrote_by.ArticleID = L.ArticleID
+        INNER JOIN Author ON Author.AuthorID = Wrote_by.AuthorID
+        GROUP BY Author.AuthorID, Author.[Name], L.TopicName
+    ) AS T
+    WHERE T.AuthorRank = 1
+    ORDER BY T.ArticlesCount DESC
 END;
 
-  
+CREATE PROCEDURE RunningCitationsSumPerTopic
+AS
+BEGIN
+    SET NOCOUNT ON
+
+	DECLARE @TopicName		VARCHAR(50)
+	DECLARE @CitationsCount INT
+	DECLARE @RunningSum		INT = 0
+
+	-- Create a temporary table to store the results
+    CREATE TABLE #CitationsSummary (
+        TopicName		VARCHAR(50),
+        CitationsCount          INT,
+        RunningCitationsSum		INT
+    )
+
+	DECLARE runningSumCursor CURSOR FAST_FORWARD
+	FOR 
+		-- Citations per topic
+		SELECT TopicName, COUNT(TopicID) AS CitationsCount
+		FROM ListAllArticlesPerTopic() AS L
+		INNER JOIN Cited_by ON CitedArticleID = ArticleID
+		GROUP BY TopicName
+		ORDER BY CitationsCount
+
+	OPEN runningSumCursor
+
+	FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
+	
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		-- Add the current CitationsCount to the running sum
+		SET @RunningSum = @RunningSum + @CitationsCount
+
+		-- Insert the current row's data and the running sum into the temporary table
+        INSERT INTO #CitationsSummary (TopicName, CitationsCount, RunningCitationsSum)
+        VALUES (@TopicName, @CitationsCount, @RunningSum)
+
+		-- Fetch the next row from the cursor
+		FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
+	END
+
+	-- end the cursor
+	CLOSE runningSumCursor
+	DEALLOCATE runningSumCursor
+
+	-- Return the result
+    SELECT * FROM #CitationsSummary
+    DROP TABLE #CitationsSummary
+END;
+
 
 --################################# Author #################################--
 -- listing
@@ -705,7 +738,7 @@ DROP PROCEDURE IF EXISTS ListArticleDetails;
 DROP PROCEDURE IF EXISTS GetJournalIDByName;
 -- delete/update/create
 DROP PROCEDURE IF EXISTS DeleteArticle;
-DROP PROCEDURE IF EXISTS ValidateArticleTitle;
+DROP PROCEDURE IF EXISTS ValidateArticle;
 DROP PROCEDURE IF EXISTS UpdateArticle;
 DROP PROCEDURE IF EXISTS CreateArticle;
 --------------------------------------------------------------------------------
@@ -805,6 +838,22 @@ BEGIN
         DELETE FROM Belongs_to
         WHERE ArticleID = @ArticleID
 
+        -- Remove related records in the Cited_by table
+        DELETE FROM Cited_by
+        WHERE CitedArticleID = @ArticleID OR CitingArticleID = @ArticleID
+
+        -- Remove related records in the Has_Keywords table
+        DELETE FROM Has_Keywords
+        WHERE ArticleID = @ArticleID
+
+        -- Remove related records in the Favorite_Article table
+        DELETE FROM Favorite_Article
+        WHERE ArticleID = @ArticleID
+
+        -- Remove related records in the Read_by table
+        DELETE FROM Read_by
+        WHERE ArticleID = @ArticleID
+
         -- Remove the article
         DELETE FROM Article
         WHERE ArticleID = @ArticleID
@@ -821,9 +870,12 @@ BEGIN
     END CATCH
 END;
 
-CREATE PROCEDURE ValidateArticleTitle
+CREATE PROCEDURE ValidateArticle
     @Title NVARCHAR(500),
     @JournalName VARCHAR(100),
+    @Volume INT,
+    @StartPage INT,
+    @EndPage INT,
     @JourID VARCHAR(40) OUTPUT
 AS
 BEGIN 
@@ -841,6 +893,29 @@ BEGIN
         RAISERROR ('Journal %s not found.', 16, 1, @JournalName)
         RETURN
     END
+
+    -- Check if Volume is NULL and JournalName is not empty
+    IF @Volume is NULL AND @JournalName IS NOT NULL
+    BEGIN
+        RAISERROR ('Volume cannot be empty.', 16, 1)
+        RETURN
+    END
+
+    -- Check if Volume is valid
+    IF @JournalName IS NOT NULL AND NOT EXISTS (SELECT 1 FROM JournalVolume WHERE JournalID = @JourID AND Volume = @Volume)
+    BEGIN
+        RAISERROR ('Volume %d not found for journal %s.', 16, 1, @Volume, @JournalName)
+        RETURN
+    END
+
+    -- Check if StartPage is bigger than EndPage
+    IF @StartPage IS NOT NULL AND @EndPage IS NOT NULL AND @StartPage > @EndPage
+    BEGIN
+        RAISERROR ('Start page cannot be bigger than end page.', 16, 1)
+        RETURN
+    END
+    
+
 END;
 
 
@@ -867,7 +942,7 @@ BEGIN
     SET @Volume = NULLIF(@Volume, 0)
 
     DECLARE @JourID VARCHAR(40)
-    EXEC ValidateArticleTitle @Title, @JournalName, @JourID OUTPUT -- exception may be thrown
+    EXEC ValidateArticle @Title, @JournalName, @Volume, @StartPage, @EndPage, @JourID OUTPUT -- exception may be thrown
 
     UPDATE Article
     SET Title = @Title, Abstract = @Abstract, DOI = @DOI, StartPage = @StartPage, EndPage = @EndPage, JournalID = @JourID, Volume = @Volume
@@ -897,7 +972,7 @@ BEGIN
     SET @Volume = NULLIF(@Volume, 0)
 
     DECLARE @JourID VARCHAR(40)
-    EXEC ValidateArticleTitle @Title, @JournalName, @JourID OUTPUT -- exception may be thrown
+    EXEC ValidateArticle @Title, @JournalName, @Volume, @StartPage, @EndPage, @JourID OUTPUT -- exception may be thrown
 
     INSERT INTO Article (ArticleID, Title, Abstract, DOI, StartPage, EndPage, JournalID, Volume, AuthorsCount) 
     VALUES (@ArticleID, @Title, @Abstract, @DOI, @StartPage, @EndPage, @JourID, @Volume, 0)

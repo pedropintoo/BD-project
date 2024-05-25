@@ -282,7 +282,7 @@ def insert_article_many(articles):
                 except pyodbc.ProgrammingError as e:
                     print("Article creation error.", e)
                 except pyodbc.DataError as e:
-                    print("Truncated maybe. Error...", article, e)
+                    print("Truncated maybe. Error...")
                 except Exception as e:
                     print("Error...", article, e)
         except pyodbc.ProgrammingError as e:
@@ -298,7 +298,7 @@ def insert_article_many(articles):
                 except pyodbc.ProgrammingError as e:
                     print("Article creation error.", e)
                 except pyodbc.DataError as e:
-                    print("Truncated maybe. Error...", article, e) 
+                    print("Truncated maybe. Error...") 
                 except Exception as e:
                     print("Error...", article, e)
         except Exception as e:
@@ -519,8 +519,11 @@ def insert_articles_and_topics_and_journalVersions(buffer):
 
             if topic.TopicID in article_topics:
                 continue
+            
+            print(topic_name)
 
             article_topics.append(topic.TopicID)
+
             topics.append(topic)
 
 
@@ -624,20 +627,106 @@ def insert_articles_and_topics_and_journalVersions(buffer):
             if paper is None or paper["externalIds"] is None or paper["externalIds"].get("CorpusId", None) is None:
                 continue
 
-            citingPaper = Article(
-                ArticleID = paper["externalIds"]["CorpusId"],
-                Title = paper["title"],
-                Abstract = paper["abstract"] if paper["abstract"] else None,
-                DOI = paper["externalIds"].get("DOI", None) if paper["externalIds"] else None,
-                StartPage = 0,
-                EndPage = 0,
-                JournalID = None,
-                Volume = None,
-                AuthorsCount = 0
-            )
+            article_topics = []
 
-            articles.append(citingPaper)
-            cited_by.append((article.ArticleID, paper["externalIds"]["CorpusId"]))
+            # Get topics
+            for item in paper["s2FieldsOfStudy"]:
+                topic_name = item["category"]    
+                # Create Topic object
+                topic = Topic(
+                    TopicID = str(abs(hash(topic_name)) % (10 ** 10)),
+                    Name = topic_name,
+                    Description = None,
+                    ArticlesCount = 0
+                )
+
+                if topic.TopicID in article_topics:
+                    continue
+                
+                print(topic_name)
+
+                article_topics.append(topic.TopicID)
+
+                topics.append(topic)
+
+
+                journal_info = paper["journal"]
+                if journal_info == "" or journal_info is None:
+                    continue
+
+                startPage = endPage = 0
+                pages = journal_info.get("pages")
+                if pages is not None:
+                    pages = pages.replace('\n', '').replace('\\n', '').strip()
+                volume = journal_info.get("volume")
+                if volume is None:
+                    continue
+                journalName = journal_info.get("name")
+                
+                journalID = str(abs(hash(journalName)) % (10 ** 40))
+                
+                if journalID == "0" or journalName is None or journalName == "":
+                    continue
+                
+                # create journal object
+                journal = Journal(
+                    JournalID = journalID,
+                    Name = journalName,
+                    PrintISSN = None,
+                    EletronicISSN = None,
+                    Url = None,
+                    Publisher = None,
+                    ArticlesCount = 0
+                )
+
+                journals.append(journal)
+                
+                if paper["publicationDate"] is None or paper["publicationDate"] == "":
+                    continue
+
+                # create journal volume object
+                journalVolume = JournalVolume(
+                    JournalID = journalID,
+                    Volume = volume,
+                    PublicationDate = paper["publicationDate"],
+                )
+                
+                journalVolumes.append(journalVolume)
+                
+                # Check if the data format is correct
+                if pages and isinstance(pages, str) and '-' in pages:
+                    # Clean up whitespace and line breaks
+                    pages = pages.strip()
+                    
+                    # Check if the format is 'Number1-Number2' after cleaning
+                    if pages.count('-') == 1 and all(part.isdigit() for part in pages.split('-')):
+                        startPage, endPage = map(int, pages.split('-'))
+            
+                if volume and isinstance(volume, str) and volume.isdigit():
+                    volume = int(volume)
+                else:
+                    volume = 0
+                
+                # Create Article object
+                citingPaper = Article(
+                    ArticleID = str(paper["externalIds"]["CorpusId"]),
+                    Title = paper["title"],
+                    Abstract = paper["abstract"] if paper["abstract"] else None,
+                    DOI = paper["externalIds"].get("DOI", None) if paper["externalIds"] else None,
+                    StartPage = startPage,
+                    EndPage = endPage,
+                    JournalID = journalID,
+                    Volume = volume,
+                    AuthorsCount = 0
+                    )
+
+                articles.append(citingPaper)  
+                cited_by.append((article.ArticleID, paper["externalIds"]["CorpusId"])) 
+
+                for topicID in article_topics:
+                    belongs_to.append((topicID, citingPaper))
+
+
         time.sleep(0.1)
         papers = sch.get_paper_references(paperID)
         for paper in papers:
@@ -645,21 +734,105 @@ def insert_articles_and_topics_and_journalVersions(buffer):
 
             if paper is None or paper["externalIds"] is None or paper["externalIds"].get("CorpusId", None) is None:
                 continue
+            
+            article_topics = []
 
-            citedPaper = Article(
-                ArticleID = paper["externalIds"]["CorpusId"],
-                Title = paper["title"],
-                Abstract = paper["abstract"] if paper["abstract"] else None,
-                DOI = paper["externalIds"].get("DOI", None) if paper["externalIds"] else None,
-                StartPage = 0,
-                EndPage = 0,
-                JournalID = None,
-                Volume = None,
-                AuthorsCount = 0
-            )
+            # Get topics
+            for item in paper["s2FieldsOfStudy"]:
+                topic_name = item["category"]    
+                # Create Topic object
+                topic = Topic(
+                    TopicID = str(abs(hash(topic_name)) % (10 ** 10)),
+                    Name = topic_name,
+                    Description = None,
+                    ArticlesCount = 0
+                )
 
-            articles.append(citedPaper)
-            cited_by.append((paper["externalIds"]["CorpusId"], article.ArticleID))
+                if topic.TopicID in article_topics:
+                    continue
+                
+                print(topic_name)
+
+                article_topics.append(topic.TopicID)
+
+                topics.append(topic)
+
+
+                journal_info = paper["journal"]
+                if journal_info == "" or journal_info is None:
+                    continue
+
+                startPage = endPage = 0
+                pages = journal_info.get("pages")
+                if pages is not None:
+                    pages = pages.replace('\n', '').replace('\\n', '').strip()
+                volume = journal_info.get("volume")
+                if volume is None:
+                    continue
+                journalName = journal_info.get("name")
+                
+                journalID = str(abs(hash(journalName)) % (10 ** 40))
+                
+                if journalID == "0" or journalName is None or journalName == "":
+                    continue
+                
+                # create journal object
+                journal = Journal(
+                    JournalID = journalID,
+                    Name = journalName,
+                    PrintISSN = None,
+                    EletronicISSN = None,
+                    Url = None,
+                    Publisher = None,
+                    ArticlesCount = 0
+                )
+
+                journals.append(journal)
+                
+                if paper["publicationDate"] is None or paper["publicationDate"] == "":
+                    continue
+
+                # create journal volume object
+                journalVolume = JournalVolume(
+                    JournalID = journalID,
+                    Volume = volume,
+                    PublicationDate = paper["publicationDate"],
+                )
+                
+                journalVolumes.append(journalVolume)
+                
+                # Check if the data format is correct
+                if pages and isinstance(pages, str) and '-' in pages:
+                    # Clean up whitespace and line breaks
+                    pages = pages.strip()
+                    
+                    # Check if the format is 'Number1-Number2' after cleaning
+                    if pages.count('-') == 1 and all(part.isdigit() for part in pages.split('-')):
+                        startPage, endPage = map(int, pages.split('-'))
+            
+                if volume and isinstance(volume, str) and volume.isdigit():
+                    volume = int(volume)
+                else:
+                    volume = 0
+                
+                # Create Article object
+                citedPaper = Article(
+                    ArticleID = str(paper["externalIds"]["CorpusId"]),
+                    Title = paper["title"],
+                    Abstract = paper["abstract"] if paper["abstract"] else None,
+                    DOI = paper["externalIds"].get("DOI", None) if paper["externalIds"] else None,
+                    StartPage = startPage,
+                    EndPage = endPage,
+                    JournalID = journalID,
+                    Volume = volume,
+                    AuthorsCount = 0
+                    )
+
+                articles.append(citedPaper)  
+                cited_by.append((paper["externalIds"]["CorpusId"], article.ArticleID)) 
+
+                for topicID in article_topics:
+                    belongs_to.append((topicID, citedPaper))
   
 
     # Insert topic data
@@ -714,24 +887,24 @@ if __name__ == '__main__':
     # Download the data from the API
     # link = get_fullData_links("publication-venues","2024-04-02")[0]
     # urllib.request.urlretrieve(link, "tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz")
-    #link = get_fullData_links("authors","2024-04-02")[0]
-    #urllib.request.urlretrieve(link, "tables\\full_data\\authors\\authors0.jsonl.gz")
+    # link = get_fullData_links("authors","2024-04-02")[1]
+    # urllib.request.urlretrieve(link, "tables\\full_data\\authors\\authors1.jsonl.gz")
 
     # Use some data from the downloaded files
 
     # buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
     # print("buffer length: ", len(buffer))
     # inc = 25
-    # max = 600
+    # max = 1000
     # for i in range(0, max, inc):
     #     insert_journals(buffer[i:i+inc])
     #     print("inserted [", i, ":", i+inc, "].")
     
-    buffer = gzip.open("tables\\full_data\\authors\\authors0.jsonl.gz", "r").readlines()
+    buffer = gzip.open("tables\\full_data\\authors\\authors1.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))
     inc = 100
-    max = 500000
-    for i in range(270000, max, inc):
+    max = 125000
+    for i in range(105000, max, inc):
         insert_authors_and_institutions(buffer[i:i+inc])
         print("inserted [", i, ":", i+inc, "].")
 
