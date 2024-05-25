@@ -22,7 +22,7 @@ END;
 CREATE PROCEDURE MostProductiveAuthorsByTopic
 AS
 BEGIN
-    SELECT TopicName, AuthorName, ArticlesCount
+    SELECT TOP 8 TopicName, AuthorName, ArticlesCount
     FROM (
         SELECT COUNT(Author.ArticlesCount) AS ArticlesCount, ROW_NUMBER() OVER (PARTITION BY TopicName ORDER BY COUNT(Author.ArticlesCount) DESC, L.TopicName) AS AuthorRank, Author.AuthorID, Author.[Name] AS AuthorName, L.TopicName
         FROM ListAllArticlesPerTopic() AS L

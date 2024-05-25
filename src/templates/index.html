@@ -89,7 +89,7 @@
 
     <div id="my-chart2" class="shadow p-5 pt-2 mt-5 row">
       <h2 class="my-5 h2">
-        Number of <code>Articles</code> by Most Productive <code>Authors</code> per <code>Topic</code>.
+        Number of <code>Articles</code> by Most Productive <code>Authors</code> for top eight <code>Topics</code>.
       </h2>
       <div class="col-9">
         <table class="charts-css bar show-heading datasets-spacing-8 show-labels col-6 overflow-x-auto w-100 overflow-y-none">
@@ -134,7 +134,7 @@
 
       <div class="col-2 h-50 ">
         <ul class="charts-css legend legend-square overflow-x-scroll">
-          {% for topic in graph2_data.DataSets.keys() %}
+          {% for topic in graph2_data.DataSets.keys() | reverse %}
             <li class=" w-100"> {{ topic }} </li>
           {% endfor %}
         </ul>
