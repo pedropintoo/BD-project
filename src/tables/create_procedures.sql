@@ -11,7 +11,7 @@ BEGIN
     FROM (
         SELECT COUNT(L.TopicID) AS TopicCount, L.TopicName AS TopicName, RANK() OVER (PARTITION BY YEAR(PublicationDate) ORDER BY COUNT(L.TopicID) DESC, L.TopicName) AS rank_pub, YEAR(PublicationDate) AS PublicationYear
         FROM ListAllArticlesPerTopic() AS L
-        INNER JOIN JournalVolume ON JournalVolume.JournalID = L.JournalID 
+        INNER JOIN JournalVolume ON JournalVolume.JournalID = L.JournalID AND JournalVolume.Volume = L.Volume
         GROUP BY L.TopicName, YEAR(PublicationDate)
     ) AS T
     WHERE T.rank_pub <= 3
