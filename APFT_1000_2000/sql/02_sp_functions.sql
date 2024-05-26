@@ -11,7 +11,7 @@ BEGIN
     FROM (
         SELECT COUNT(L.TopicID) AS TopicCount, L.TopicName AS TopicName, RANK() OVER (PARTITION BY YEAR(PublicationDate) ORDER BY COUNT(L.TopicID) DESC, L.TopicName) AS rank_pub, YEAR(PublicationDate) AS PublicationYear
         FROM ListAllArticlesPerTopic() AS L
-        INNER JOIN JournalVolume ON JournalVolume.JournalID = L.JournalID
+        INNER JOIN JournalVolume ON JournalVolume.JournalID = L.JournalID AND JournalVolume.Volume = L.Volume
         GROUP BY L.TopicName, YEAR(PublicationDate)
     ) AS T
     WHERE T.rank_pub <= 3
@@ -39,49 +39,49 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-	DECLARE @TopicName		VARCHAR(50)
-	DECLARE @CitationsCount INT
-	DECLARE @RunningSum		INT = 0
+    DECLARE @TopicName		VARCHAR(50)
+    DECLARE @CitationsCount INT
+    DECLARE @RunningSum		INT = 0
 
-	-- Create a temporary table to store the results
+    -- Create a temporary table to store the results
     CREATE TABLE #CitationsSummary (
         TopicName		VARCHAR(50),
         CitationsCount          INT,
         RunningCitationsSum		INT
     )
 
-	DECLARE runningSumCursor CURSOR FAST_FORWARD
-	FOR 
-		-- Citations per topic
-		SELECT TopicName, COUNT(TopicID) AS CitationsCount
-		FROM ListAllArticlesPerTopic() AS L
-		INNER JOIN Cited_by ON CitedArticleID = ArticleID
-		GROUP BY TopicName
-		ORDER BY CitationsCount
+    DECLARE runningSumCursor CURSOR FAST_FORWARD
+    FOR 
+        -- Citations per topic
+        SELECT TopicName, COUNT(TopicID) AS CitationsCount
+        FROM ListAllArticlesPerTopic() AS L
+        INNER JOIN Cited_by ON CitedArticleID = ArticleID
+        GROUP BY TopicName
+        ORDER BY CitationsCount
 
-	OPEN runningSumCursor
+    OPEN runningSumCursor
 
-	FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
-	
+    FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
+    
 
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-		-- Add the current CitationsCount to the running sum
-		SET @RunningSum = @RunningSum + @CitationsCount
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        -- Add the current CitationsCount to the running sum
+        SET @RunningSum = @RunningSum + @CitationsCount
 
-		-- Insert the current row's data and the running sum into the temporary table
+        -- Insert the current row's data and the running sum into the temporary table
         INSERT INTO #CitationsSummary (TopicName, CitationsCount, RunningCitationsSum)
         VALUES (@TopicName, @CitationsCount, @RunningSum)
 
-		-- Fetch the next row from the cursor
-		FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
-	END
+        -- Fetch the next row from the cursor
+        FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
+    END
 
-	-- end the cursor
-	CLOSE runningSumCursor
-	DEALLOCATE runningSumCursor
+    -- end the cursor
+    CLOSE runningSumCursor
+    DEALLOCATE runningSumCursor
 
-	-- Return the result
+    -- Return the result
     SELECT * FROM #CitationsSummary
     DROP TABLE #CitationsSummary
 END;
@@ -764,7 +764,7 @@ CREATE PROCEDURE OrderBySearchArticleTitle (@ArticleTitle NVARCHAR(500))
 AS
 BEGIN
     SELECT * FROM ListAllArticles() 
-    WHERE Title LIKE @ArticleTitle + '%'
+    WHERE Title LIKE '%' + @ArticleTitle + '%'
     ORDER BY Title
 END;
 
@@ -977,3 +977,110 @@ BEGIN
     INSERT INTO Article (ArticleID, Title, Abstract, DOI, StartPage, EndPage, JournalID, Volume, AuthorsCount) 
     VALUES (@ArticleID, @Title, @Abstract, @DOI, @StartPage, @EndPage, @JourID, @Volume, 0)
 END;
+
+
+--################################# Functions #################################--
+
+--################################# Chart #################################--
+DROP FUNCTION IF EXISTS ListAllArticlesPerTopic;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllArticlesPerTopic()
+RETURNS TABLE AS
+RETURN
+(
+    SELECT Topic.TopicID, Topic.[Name] AS TopicName, Article.ArticleID, Article.JournalID, Article.Volume
+    FROM Topic
+    INNER JOIN Belongs_to ON Topic.TopicID = Belongs_to.TopicID
+    INNER JOIN Article ON Article.ArticleID = Belongs_to.ArticleID
+);
+
+--################################# Author #################################--
+DROP FUNCTION IF EXISTS ListAllAuthors;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllAuthors()
+RETURNS TABLE AS
+RETURN
+(
+    SELECT 
+        Author.AuthorID, 
+        Author.Name, 
+        Author.[Url], 
+        Institution.Name AS InstitutionName,
+        Author.ArticlesCount
+    FROM Author 
+    LEFT JOIN Institution ON Institution.InstitutionID = Author.InstitutionID
+);
+
+--################################# Institution #################################--
+DROP FUNCTION IF EXISTS ListAllInstitutions;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllInstitutions()
+RETURNS TABLE AS
+RETURN
+(
+    SELECT 
+        Institution.InstitutionID, 
+        Institution.Name, 
+        Institution.Address, 
+        Institution.AuthorsCount
+    FROM Institution 
+);
+
+--################################# Topic #################################--
+DROP FUNCTION IF EXISTS ListAllTopics;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllTopics()
+RETURNS TABLE AS
+RETURN
+(
+    SELECT 
+        Topic.TopicID, 
+        Topic.Name, 
+        Topic.Description,
+        Topic.ArticlesCount
+    FROM Topic 
+);
+
+
+--################################# Journal #################################--
+DROP FUNCTION IF EXISTS ListAllJournals;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllJournals()
+RETURNS TABLE AS
+RETURN
+(
+    SELECT 
+        Journal.JournalID, 
+        Journal.Name, 
+        Journal.PrintISSN,
+        Journal.[Url],
+        Journal.ArticlesCount
+    FROM Journal
+);    
+        
+--################################# Article #################################--
+DROP FUNCTION IF EXISTS ListAllArticles;
+------------------------------------------------------------------------------
+
+CREATE FUNCTION ListAllArticles()
+RETURNS TABLE AS 
+RETURN
+(
+    SELECT 
+        Article.ArticleID, 
+        Article.Title, 
+        Article.Abstract, 
+        Article.DOI,
+        Journal.Name AS JournalName,
+        Article.AuthorsCount
+    FROM Article 
+    LEFT JOIN Journal ON Journal.JournalID = Article.JournalID
+);
+
+
+

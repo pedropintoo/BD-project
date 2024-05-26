@@ -87,14 +87,13 @@ Pela mesma razão mencionada na seccção do DER, o Esquema Relacional (ER) tamb
 Uma secção por formulário.
 A section for each form.
 
-
 A DML é fundamental na manipulação de dados numa base de dados. 
 
 ### Formulario exemplo/Example Form
 
 ![Exemplo Screenshot!](screenshots/screenshot_1.jpg "AnImage")
 
-A seguir, apresentamos as operações permitidas na tabela "Author" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em (??).
+A seguir, apresentamos as operações permitidas na tabela "Author" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
 
 Para facilitar a visualização, criámos a pasta "screenshots/author" onde colocámos capturas de ecrã de cada uma dessas operações.
 
@@ -121,7 +120,7 @@ EXEC DeleteAuthor @AuthorID = ?;
 EXEC UpdateAuthor @AuthorID = ?, @Name = ?, @Url = ?, @ORCID = ?, @InstitutionName = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Institution" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em (??).
+A seguir, apresentamos as operações permitidas na tabela "Institution" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
 
 Para facilitar a visualização, criámos a pasta "screenshots/institution" onde colocámos capturas de ecrã de cada uma dessas operações.
 
@@ -148,7 +147,7 @@ EXEC DeleteInstitution @InstitutionID = ?;
 EXEC UpdateInstitution @InstitutionID = ?, @Name = ?, @Address = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Article" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em (??).
+A seguir, apresentamos as operações permitidas na tabela "Article" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
 
 Para facilitar a visualização, criámos a pasta "screenshots/article" onde colocámos capturas de ecrã de cada uma dessas operações.
 
@@ -175,7 +174,7 @@ EXEC DeleteArticle @ArticleID = ?;
 EXEC UpdateArticle @ArticleID = ?, @Title = ?, @Abstract = ?, @DOI = ?, @StartPage = ?, @EndPage = ?, @JournalName = ?, @Volume = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Topic" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em (??).
+A seguir, apresentamos as operações permitidas na tabela "Topic" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
 
 Para facilitar a visualização, criámos a pasta "screenshots/topic" onde colocámos capturas de ecrã de cada uma dessas operações.
 
@@ -202,7 +201,7 @@ EXEC DeleteTopic @TopicID = ?;
 EXEC UpdateTopic @TopicID = ?, @Name = ?, @Description = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Journal" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em (??).
+A seguir, apresentamos as operações permitidas na tabela "Journal" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
 
 Para facilitar a visualização, criámos a pasta "screenshots/journal" onde colocámos capturas de ecrã de cada uma dessas operações.
 
@@ -255,10 +254,6 @@ A BCNF exige que todos os atributos sejam funcionalmente dependentes da chave da
 Uma relação está na 4NF se estiver na BCNF e não existirem dependências multivalor. Analisando as tabelas, constatamos que não está nesta forma. Conseguiríamos alcançar esta forma normal reduzindo a redundância na nossa base de dados à custa da introdução de novas relações. Por exemplo, poderíamos separar [Article.Title, Article.StartPage] e [Article.Title, Article.EndPage].
 
 A 5NF, trata de dependências de junção. Uma vez que não está na 4FN, pela definição da 5FN não se encontra nesta forma.
-
--------
-
-
 
 ## Índices/Indexes
 
