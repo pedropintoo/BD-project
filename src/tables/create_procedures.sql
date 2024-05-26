@@ -34,57 +34,57 @@ BEGIN
     ORDER BY T.ArticlesCount DESC
 END;
 
-    CREATE PROCEDURE RunningCitationsSumPerTopic
-    AS
+CREATE PROCEDURE RunningCitationsSumPerTopic
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @TopicName		VARCHAR(50)
+    DECLARE @CitationsCount INT
+    DECLARE @RunningSum		INT = 0
+
+    -- Create a temporary table to store the results
+    CREATE TABLE #CitationsSummary (
+        TopicName		VARCHAR(50),
+        CitationsCount          INT,
+        RunningCitationsSum		INT
+    )
+
+    DECLARE runningSumCursor CURSOR FAST_FORWARD
+    FOR 
+        -- Citations per topic
+        SELECT TopicName, COUNT(TopicID) AS CitationsCount
+        FROM ListAllArticlesPerTopic() AS L
+        INNER JOIN Cited_by ON CitedArticleID = ArticleID
+        GROUP BY TopicName
+        ORDER BY CitationsCount
+
+    OPEN runningSumCursor
+
+    FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
+    
+
+    WHILE @@FETCH_STATUS = 0
     BEGIN
-        SET NOCOUNT ON
+        -- Add the current CitationsCount to the running sum
+        SET @RunningSum = @RunningSum + @CitationsCount
 
-        DECLARE @TopicName		VARCHAR(50)
-        DECLARE @CitationsCount INT
-        DECLARE @RunningSum		INT = 0
+        -- Insert the current row's data and the running sum into the temporary table
+        INSERT INTO #CitationsSummary (TopicName, CitationsCount, RunningCitationsSum)
+        VALUES (@TopicName, @CitationsCount, @RunningSum)
 
-        -- Create a temporary table to store the results
-        CREATE TABLE #CitationsSummary (
-            TopicName		VARCHAR(50),
-            CitationsCount          INT,
-            RunningCitationsSum		INT
-        )
-
-        DECLARE runningSumCursor CURSOR FAST_FORWARD
-        FOR 
-            -- Citations per topic
-            SELECT TopicName, COUNT(TopicID) AS CitationsCount
-            FROM ListAllArticlesPerTopic() AS L
-            INNER JOIN Cited_by ON CitedArticleID = ArticleID
-            GROUP BY TopicName
-            ORDER BY CitationsCount
-
-        OPEN runningSumCursor
-
+        -- Fetch the next row from the cursor
         FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
-        
+    END
 
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            -- Add the current CitationsCount to the running sum
-            SET @RunningSum = @RunningSum + @CitationsCount
+    -- end the cursor
+    CLOSE runningSumCursor
+    DEALLOCATE runningSumCursor
 
-            -- Insert the current row's data and the running sum into the temporary table
-            INSERT INTO #CitationsSummary (TopicName, CitationsCount, RunningCitationsSum)
-            VALUES (@TopicName, @CitationsCount, @RunningSum)
-
-            -- Fetch the next row from the cursor
-            FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
-        END
-
-        -- end the cursor
-        CLOSE runningSumCursor
-        DEALLOCATE runningSumCursor
-
-        -- Return the result
-        SELECT * FROM #CitationsSummary
-        DROP TABLE #CitationsSummary
-    END;
+    -- Return the result
+    SELECT * FROM #CitationsSummary
+    DROP TABLE #CitationsSummary
+END;
 
 
 --################################# Author #################################--
