@@ -11,7 +11,7 @@ BEGIN
     FROM (
         SELECT COUNT(L.TopicID) AS TopicCount, L.TopicName AS TopicName, RANK() OVER (PARTITION BY YEAR(PublicationDate) ORDER BY COUNT(L.TopicID) DESC, L.TopicName) AS rank_pub, YEAR(PublicationDate) AS PublicationYear
         FROM ListAllArticlesPerTopic() AS L
-        INNER JOIN JournalVolume ON JournalVolume.JournalID = L.JournalID 
+        INNER JOIN JournalVolume ON JournalVolume.JournalID = L.JournalID
         GROUP BY L.TopicName, YEAR(PublicationDate)
     ) AS T
     WHERE T.rank_pub <= 3
@@ -34,57 +34,57 @@ BEGIN
     ORDER BY T.ArticlesCount DESC
 END;
 
-    CREATE PROCEDURE RunningCitationsSumPerTopic
-    AS
-    BEGIN
-        SET NOCOUNT ON
+CREATE PROCEDURE RunningCitationsSumPerTopic
+AS
+BEGIN
+    SET NOCOUNT ON
 
-        DECLARE @TopicName		VARCHAR(50)
-        DECLARE @CitationsCount INT
-        DECLARE @RunningSum		INT = 0
+	DECLARE @TopicName		VARCHAR(50)
+	DECLARE @CitationsCount INT
+	DECLARE @RunningSum		INT = 0
 
-        -- Create a temporary table to store the results
-        CREATE TABLE #CitationsSummary (
-            TopicName		VARCHAR(50),
-            CitationsCount          INT,
-            RunningCitationsSum		INT
-        )
+	-- Create a temporary table to store the results
+    CREATE TABLE #CitationsSummary (
+        TopicName		VARCHAR(50),
+        CitationsCount          INT,
+        RunningCitationsSum		INT
+    )
 
-        DECLARE runningSumCursor CURSOR FAST_FORWARD
-        FOR 
-            -- Citations per topic
-            SELECT TopicName, COUNT(TopicID) AS CitationsCount
-            FROM ListAllArticlesPerTopic() AS L
-            INNER JOIN Cited_by ON CitedArticleID = ArticleID
-            GROUP BY TopicName
-            ORDER BY CitationsCount
+	DECLARE runningSumCursor CURSOR FAST_FORWARD
+	FOR 
+		-- Citations per topic
+		SELECT TopicName, COUNT(TopicID) AS CitationsCount
+		FROM ListAllArticlesPerTopic() AS L
+		INNER JOIN Cited_by ON CitedArticleID = ArticleID
+		GROUP BY TopicName
+		ORDER BY CitationsCount
 
-        OPEN runningSumCursor
+	OPEN runningSumCursor
 
-        FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
-        
+	FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
+	
 
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            -- Add the current CitationsCount to the running sum
-            SET @RunningSum = @RunningSum + @CitationsCount
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		-- Add the current CitationsCount to the running sum
+		SET @RunningSum = @RunningSum + @CitationsCount
 
-            -- Insert the current row's data and the running sum into the temporary table
-            INSERT INTO #CitationsSummary (TopicName, CitationsCount, RunningCitationsSum)
-            VALUES (@TopicName, @CitationsCount, @RunningSum)
+		-- Insert the current row's data and the running sum into the temporary table
+        INSERT INTO #CitationsSummary (TopicName, CitationsCount, RunningCitationsSum)
+        VALUES (@TopicName, @CitationsCount, @RunningSum)
 
-            -- Fetch the next row from the cursor
-            FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
-        END
+		-- Fetch the next row from the cursor
+		FETCH NEXT FROM runningSumCursor INTO @TopicName, @CitationsCount
+	END
 
-        -- end the cursor
-        CLOSE runningSumCursor
-        DEALLOCATE runningSumCursor
+	-- end the cursor
+	CLOSE runningSumCursor
+	DEALLOCATE runningSumCursor
 
-        -- Return the result
-        SELECT * FROM #CitationsSummary
-        DROP TABLE #CitationsSummary
-    END;
+	-- Return the result
+    SELECT * FROM #CitationsSummary
+    DROP TABLE #CitationsSummary
+END;
 
 
 --################################# Author #################################--
@@ -764,7 +764,7 @@ CREATE PROCEDURE OrderBySearchArticleTitle (@ArticleTitle NVARCHAR(500))
 AS
 BEGIN
     SELECT * FROM ListAllArticles() 
-    WHERE Title LIKE '%' + @ArticleTitle + '%'
+    WHERE Title LIKE @ArticleTitle + '%'
     ORDER BY Title
 END;
 
