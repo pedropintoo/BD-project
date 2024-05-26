@@ -4,33 +4,15 @@
 - João Pinto, MEC: 104384
 - Pedro Pinto, MEC: 115304
 
-# Instructions - TO REMOVE
-
-Este template é flexível.
-É sugerido seguir a estrutura, links de ficheiros e imagens, mas adicione ou remova conteúdo sempre que achar necessário.
-
----
-
-This template is flexible.
-It is suggested to follow the structure, file links and images but add more content where necessary.
-
-The files should be organized with the following nomenclature:
-
 - sql\01_ddl.sql: mandatory for DDL
 - sql\02_sp_functions.sql: mandatory for Store Procedure, Functions,... 
 - sql\03_triggers.sql: mandatory for triggers
 - sql\04_db_init.sql: scripts to init the database (i.e. inserts etc.)
 - sql\05_any_other_matter.sql: any other scripts.
 
-Por favor remova esta secção antes de submeter.
-
-Please remove this section before submitting.
 
 ## Introdução / Introduction
  
-Escreva uma pequena introdução sobre o trabalho.
-Write a simple introduction about your project.
-
 Este trabalho consistiu no desenvolvimento de um sistema de gestão de artigos científicos. Para atingir esse objetivo, foi criada uma base de dados que armazena diversas entidades inter-relacionadas, tais como autores, instituições, artigos, tópicos e jornais. Um dos nossos principais objetivos foi utilizar dados reais para este trabalho, para tal recorremos à API Semantic Scholar. Devido ao uso de dados reais tivemos que fazer ligeiras alterações no DER e no ER, que serão explicadas posteriormente no relatório.
 
 O sistema foi projetado para ser utilizado através de um website, onde os utilizadores interagem com a base de dados por meio de formulários. Estes formulários permitem operações como listar, ordenar, procurar, adicionar, ver detalhes, atualizar e eliminar registos de diferentes entidades. Além disso, são fornecidas estatísticas ao utilizador, como, por exemplo, os tópicos mais populares por ano ou os autores mais produtivos numa determinada área de investigação.
@@ -39,6 +21,18 @@ Este relatório documenta o desenvolvimento do sistema, apresentando a estrutura
 
 ## ​Análise de Requisitos / Requirements
 
+### Requisitos Funcionais
+1. O sistema permite ao utilizador pesquisar artigos por título, autor e tópicos. Deve ser possível fazer uma pesquisa por diferentes critérios.
+2. O sistema apresenta em cada artigo a informação disponível sobre o mesmo, como por exemplo, título, autores, jornal, abstract, data de publicação e número de citações. 
+3. O sistema permite ao utilizador visualizar estatísticas sobre artigos científicos, jornais e tópicos.
+4. O sistema permite ao gestor da base de dados adicionar, remover e editar artigos, autores, instituições, jornais e tópicos mantendo a consistência da base de dados.
+
+### Requisitos Não Funcionais
+1. O sistema é intuitivo e fácil de usar, sendo centrado na pesquisa de artigos.
+2. O sistema é seguro, garantindo a confidencialidade dos dados do utilizador.
+3. O sistema é eficiente, garantindo uma resposta rápida às pesquisas dos utilizadores. 
+
+
 ## DER - Diagrama Entidade Relacionamento/Entity Relationship Diagram
 
 ### Versão final/Final version
@@ -46,9 +40,6 @@ Este relatório documenta o desenvolvimento do sistema, apresentando a estrutura
 ![DER Diagram!](der.jpg "AnImage")
 
 ### APFE 
-
-Descreva sumariamente as melhorias sobre a primeira entrega.
-Describe briefly the improvements made since the first delivery.
 
 Para adaptar o nosso trabalho aos dados reais fornecidos pela API, fizemos as seguintes modificações no Diagrama Entidade-Relacionamento (DER):
 - Na entidade "Journal" o atributo "Frequency" foi substituído pelo atributo "Url". 
@@ -67,10 +58,8 @@ Além disso, devido às especificações dos dados fornecidos pela API, alterám
 
 ### APFE
 
-Descreva sumariamente as melhorias sobre a primeira entrega.
-Describe briefly the improvements made since the first delivery.
 
-Pela mesma razão mencionada na seccção do DER, o Esquema Relacional (ER) também sofreu ligeiras alterações:
+Pela mesma razão mencionada na secção do DER, o Esquema Relacional (ER) também sofreu ligeiras alterações:
 - Na entidade "Journal" o atributo "Frequency" foi substituído pelo atributo "Url"; 
 - Na entidade "Author" o atributo "Email" foi substituído pelo atributo "Url";
 - Nas entidades "Author", "Journal" e "Topic" adicionámos o atributo "ArticlesCount" (índice);
@@ -83,9 +72,6 @@ Pela mesma razão mencionada na seccção do DER, o Esquema Relacional (ER) tamb
 [SQL DDL File](sql/01_ddl.sql "SQLFileQuestion")
 
 ## SQL DML - Data Manipulation Language
-
-Uma secção por formulário.
-A section for each form.
 
 A DML é fundamental na manipulação de dados numa base de dados. 
 
@@ -230,11 +216,6 @@ EXEC UpdateJournal @JournalID = ?, @Name = ?, @PrintISSN = ?, @EletronicISSN = ?
 
 ## Normalização/Normalization
 
-Descreva os passos utilizados para minimizar a duplicação de dados / redução de espaço.
-Justifique as opções tomadas.
-Describe the steps used to minimize data duplication / space reduction.
-Justify the choices made.
-
 Para minimizar a duplicação de dados na nossa base de dados, adotámos uma série de passos na estruturação das tabelas.
 
 Primeiramente, na tabela "Article", evitámos a duplicação de dados não incluindo atributos como "PublicationDate" e "TopicName" diretamente. Em vez disso, criámos as tabelas "JournalVolume" e "Topic" para armazenar essas informações que são comuns a vários artigos. Este passo previne a necessidade de múltiplos updates e problemas de consistência entre cópias da mesma informação. Utilizámos uma chave estrangeira composta (JournalID, Volume) para manter a dependência correta com "JournalVolume". Para garantir uma associação eficiente entre tópicos e artigos, críamos a tabela "Belongs_to" com uma chave primária composta por (TopicID, ArticleID). É de salientar que a informação comum a múltiplos volumes de um mesmo jornal é mantida na tabela "Journal".
@@ -247,7 +228,7 @@ Utilizámos a mesma abordagem para as relações "Has_keywords", "Favorite_Journ
 
 Na tabela "Author" optámos por não incluir o nome da instituição a que o autor pertence. A dependência com "Institution" é mantida através da chave estrangeira "InstitutionID".
 
-Em relação à normalização, garantimos que todas as tabelas tivessem valores atómicos e que não existissem relações dentro de relações (1NF). Eliminámos dependências parciais, assegurando que cada atributo não-chave fosse totalmente dependente da chave primária (2NF). Também eliminámos dependências transitivas de atributos não-chave, como exemplificado pela tabela "Institution", onde não há quaisquers atributos dependentes de "Author", o que se aplica igualmente às restantes tabelas (3NF).
+Em relação à normalização, garantimos que todas as tabelas tivessem valores atómicos e que não existissem relações dentro de relações (1NF). Eliminámos dependências parciais, assegurando que cada atributo não-chave fosse totalmente dependente da chave primária (2NF). Também eliminámos dependências transitivas de atributos não-chave, como exemplificado pela tabela "Institution", onde não há quaisquer atributos dependentes de "Author", o que se aplica igualmente às restantes tabelas (3NF).
 
 A BCNF exige que todos os atributos sejam funcionalmente dependentes da chave da relação, de toda a chave e nada mais. Isto verifica-se nas nossas tabelas. Por exemplo, na tabela "Journal" onde temos a chave primária "JournalID" temos a seguinte dependência: JournalID -> Name, PrintISSN, EletronicISSN, Url, Publisher, ArticlesCount.
 
@@ -256,9 +237,6 @@ Uma relação está na 4NF se estiver na BCNF e não existirem dependências mul
 A 5NF, trata de dependências de junção. Uma vez que não está na 4FN, pela definição da 5FN não se encontra nesta forma.
 
 ## Índices/Indexes
-
-Descreva os indices criados. Junte uma cópia do SQL de criação do indice.
-Describe the indexes created. Attach a copy of the SQL to create the index.
 
 Os índices foram criados para melhorar a performance das consultas. Optámos por priorizar a eficiência na procura e ordenação dos dados, em detrimento da inserção de grandes volumes de dados, pois as operações de leitura são mais comuns no uso diário desta base de dados. Para isso, criámos índices focados em atributos-chave como nomes, número de artigos e número de autores.
 
