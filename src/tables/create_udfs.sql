@@ -6,7 +6,7 @@ CREATE FUNCTION ListAllArticlesPerTopic()
 RETURNS TABLE AS
 RETURN
 (
-    SELECT Topic.TopicID, Topic.[Name] AS TopicName, Article.ArticleID, Article.JournalID 
+    SELECT Topic.TopicID, Topic.[Name] AS TopicName, Article.ArticleID, Article.JournalID, Article.Volume
     FROM Topic
     INNER JOIN Belongs_to ON Topic.TopicID = Belongs_to.TopicID
     INNER JOIN Article ON Article.ArticleID = Belongs_to.ArticleID
