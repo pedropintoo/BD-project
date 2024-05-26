@@ -75,21 +75,6 @@ O exemplo ilustrado, é um SP que tem a finalidade de calcular os tópicos de in
 A query conta o número de artigos publicados por ano de um determinado tópico.
 Utilizamos a função RANK() para classificar os tópicos dentro de cada ano com base na contagem de publicações. Os tópicos são ordenados de forma decrescente, selecionando apenas os três tópicos mais populares para cada ano. Finalmente, os resultados são ordenados por ano de publicação e pelo número de publicações daquele tópico.
 
--- Triggers
-
-Outro elemento importante utilizado no nosso sistema são os triggers. Usámos triggers para garantir que a base de dados mantivesse consistência sempre que ocorre uma modificação na base de dados, como inserções, eliminações e atualizações. Aqui estão dois exemplos de triggers que utilizamos para manter o contador de artigos atualizados na tabela de autores:
-
-(Confirmar isto com POS)
-Este trigger é acionado após uma inserção na tabela Wrote_by. Ele atualiza o campo ArticlesCount na tabela Author, contando o número de artigos associados ao autor recém-inserido.
-
-Este trigger por sua vez é acionado após uma eliminação na tabela Wrote_by. Ele atualiza o campo ArticlesCount na tabela Author, contando o número de artigos associados ao autor que teve um artigo eliminando.
-
--- Indexes
-
-Foram ainda criados índices para melhorar a performance das consultas. Para isso, criámos índices focados em atributos-chave como nomes, número de artigos e número de autores, como podemos ver nos exemplos apresentados.
-
-Esses índices são especialmente úteis quando os utilizadores do website ordenam resultados com base na quantidade de artigos ou autores, proporcionando uma experiência de procura mais rápida e eficiente, como verificámos no Execution Plan do SQL Server (Imagem do ??).
-
 -- Cursor
 Utilizamos ainda outro elemento, que foi um cursor, para mostrar uma estatística das citações acumulativas por tópico. Esta estatística permite ao utilizador ver os tópicos mais citados e perceber a discrepância entre diferentes tópicos. O cursor foi utilizado dentro de um Stored Procedure (SP), como podemos ver no slide.
 
@@ -107,6 +92,23 @@ Este SP faz o seguinte:
 
 5) Fecha e desaloca o cursor, e retorna os resultados da tabela temporária antes de descartá-la.
 )
+
+-- Triggers
+
+Outro elemento importante utilizado no nosso sistema são os triggers. Usámos triggers para garantir que a base de dados mantivesse consistência sempre que ocorre uma modificação na base de dados, como inserções, eliminações e atualizações. Aqui estão dois exemplos de triggers que utilizamos para manter o contador de artigos atualizados na tabela de autores:
+
+(Confirmar isto com POS)
+Este trigger é acionado após uma inserção na tabela Wrote_by. Ele atualiza o campo ArticlesCount na tabela Author, sempre que é inserido uma relação entre autor e artigo na tabela Wrote_by.
+
+Este trigger por sua vez é acionado após uma eliminação na tabela Wrote_by. Ele atualiza o campo ArticlesCount na tabela Author, contando o número de artigos associados ao autor que teve um artigo eliminando.
+
+-- Indexes
+
+Foram ainda criados índices para melhorar a performance das consultas. Para isso, criámos índices focados em atributos-chave como nomes, número de artigos e número de autores, como podemos ver nos exemplos apresentados.
+
+Esses índices são especialmente úteis quando os utilizadores do website ordenam resultados com base na quantidade de artigos ou autores, proporcionando uma experiência de procura mais rápida e eficiente, como verificámos no Execution Plan do SQL Server (Imagem do ??).
+
+
 
 Agora vamos proceder ao vídeo demonstrativo, onde mostraremos como o utilizador interage com a base de dados através de formulários.
 
