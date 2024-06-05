@@ -885,20 +885,20 @@ def get_fullData_links(dataset, release = "latest"):
 
 if __name__ == '__main__':
     # Download the data from the API
-    # link = get_fullData_links("publication-venues","2024-04-02")[0]
-    # urllib.request.urlretrieve(link, "tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz")
-    # link = get_fullData_links("authors","2024-04-02")[1]
-    # urllib.request.urlretrieve(link, "tables\\full_data\\authors\\authors1.jsonl.gz")
+    link = get_fullData_links("publication-venues","2024-04-02")[0]
+    urllib.request.urlretrieve(link, "tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz")
+    link = get_fullData_links("authors","2024-04-02")[3]
+    urllib.request.urlretrieve(link, "tables\\full_data\\authors\\authors1.jsonl.gz")
 
     # Use some data from the downloaded files
 
-    # buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
-    # print("buffer length: ", len(buffer))
-    # inc = 25
-    # max = 1000
-    # for i in range(0, max, inc):
-    #     insert_journals(buffer[i:i+inc])
-    #     print("inserted [", i, ":", i+inc, "].")
+    buffer = gzip.open("tables\\full_data\\publication-venues\\publication-venues0.jsonl.gz", "r").readlines()
+    print("buffer length: ", len(buffer))
+    inc = 25
+    max = 1000
+    for i in range(0, max, inc):
+        insert_journals(buffer[i:i+inc])
+        print("inserted [", i, ":", i+inc, "].")
     
     buffer = gzip.open("tables\\full_data\\authors\\authors1.jsonl.gz", "r").readlines()
     print("buffer length: ", len(buffer))
