@@ -1,0 +1,25 @@
+<div class="container" id="institutionsDetails1">
+    <div class="card">
+        <div class="card-header">
+            <h2>Institution Details: {{ institution_id }}</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> {{ institution.Name }}</p>
+            <p><strong>Address:</strong> {{ institution.Address }}</p>
+            <p><strong>Authors Count:</strong> {{ institution.AuthorsCount }}</p>
+
+            {% if institution.AuthorsCount > 0 %}
+            <div>
+                <br>
+                <ul class="list-group">
+                    {% for authorName in institution.AuthorsList %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-user mr-2"></i> {{ authorName }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

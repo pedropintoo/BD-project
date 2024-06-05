@@ -1,0 +1,29 @@
+<div class="container" id="articlesDetails1">
+    <div class="card">
+        <div class="card-header">
+            <h2>Article Details: {{ article_id }}</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>Title:</strong> {{ article.Title }}</p>
+            <p><strong>Abstract:</strong> {{ article.Abstract }}</p>
+            <p><strong>DOI:</strong> {{ article.DOI }}</p>
+            <p><strong>Journal Name:</strong> {{ article.JournalName }}</p>
+            <p><strong>Authors Count:</strong> {{ article.AuthorsCount }}</p>
+            <p><strong>Volume:</strong> {{ article.Volume }}</p>
+            <p><strong>Topics: </strong> {{article.TopicsList | join(', ')}} </p>
+
+            {% if article.AuthorsCount > 0 %}
+            <div>
+                <br>
+                <ul class="list-group">
+                    {% for authorName in article.AuthorsList %}
+                        <li class="list-group-item d-flex align-items-cente">
+                            <i class="fas fa-user mr-2"></i> {{ authorName }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

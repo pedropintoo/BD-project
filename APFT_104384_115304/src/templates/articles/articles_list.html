@@ -1,0 +1,21 @@
+
+{% for article in articles %}
+    <div class="card align-center mb-3  shadow"> 
+        <div class="card-body contact-list-item">
+            <div class="contact-list-item-details" >
+                <div>Title: <strong>{{ article.Title }}</strong></div>
+                <div>DOI: {{ article.DOI }}</div>
+            </div>
+        </div>
+        <div class="p-2">
+            <button class="btn btn-primary edit-primary" hx-target="#content" hx-get="/articles/{{ article.ArticleID }}?edit=true">Edit</button>
+            <button class="btn btn-danger delete-button"
+                    hx-delete="/articles/{{ article.ArticleID }}"
+                    hx-confirm="Are you sure?">Delete</button>
+                    <button class="btn btn-success edit-primary" hx-target="#content" hx-get="/articles/{{ article.ArticleID }}">See More</button>        
+                    
+        </div>
+    </div>   
+{% endfor %}
+
+

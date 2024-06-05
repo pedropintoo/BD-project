@@ -4,20 +4,18 @@
 - João Pinto, MEC: 104384
 - Pedro Pinto, MEC: 115304
 
-- sql\01_ddl.sql: mandatory for DDL
-- sql\02_sp_functions.sql: mandatory for Store Procedure, Functions,... 
-- sql\03_triggers.sql: mandatory for triggers
-- sql\04_db_init.sql: scripts to init the database (i.e. inserts etc.)
-- sql\05_any_other_matter.sql: any other scripts.
-
-
 ## Introdução / Introduction
  
 Este trabalho consistiu no desenvolvimento de um sistema de gestão de artigos científicos. Para atingir esse objetivo, foi criada uma base de dados que armazena diversas entidades inter-relacionadas, tais como autores, instituições, artigos, tópicos e jornais. Um dos nossos principais objetivos foi utilizar dados reais para este trabalho, para tal recorremos à API Semantic Scholar. Devido ao uso de dados reais tivemos que fazer ligeiras alterações no DER e no ER, que serão explicadas posteriormente no relatório.
 
 O sistema foi projetado para ser utilizado através de um website, onde os utilizadores interagem com a base de dados por meio de formulários. Estes formulários permitem operações como listar, ordenar, procurar, adicionar, ver detalhes, atualizar e eliminar registos de diferentes entidades. Além disso, são fornecidas estatísticas ao utilizador, como, por exemplo, os tópicos mais populares por ano ou os autores mais produtivos numa determinada área de investigação.
 
-Este relatório documenta o desenvolvimento do sistema, apresentando a estrutura da base de dados e os elementos (Queries, SPs, UDFs, Triggers, Indexes, Cursors) criados.
+Este relatório documenta o desenvolvimento do sistema, apresentando a estrutura da base de dados e os elementos (Queries, SPs, UDFs, Triggers, Indexes, Cursors) criados. 
+
+
+No planeamento deste sistema, optámos pela seguinte arquitetura: o cliente nunca contacta diretamente com as tabelas da nossa base de dados. Em vez disso, ele comunica com a base de dados através de Stored Procedures. Como podemos ver na seguinte arquitetura:
+
+![Architecture Diagram!](architecture.jpg "AnImage")
 
 ## ​Análise de Requisitos / Requirements
 
@@ -46,7 +44,7 @@ Para adaptar o nosso trabalho aos dados reais fornecidos pela API, fizemos as se
 
 Optámos por priorizar a eficiência nas consultas de procura e ordenação dos dados relativamente à inserção de dados. Para isso, criámos índices relacionados ao número de artigos e ao número de autores. Nas entidades "Author", "Journal" e "Topic" adicionámos o atributo "ArticlesCount". Nas entidades "Article" e "Institution", incluímos o atributo "AuthorsCount".
 
-Além disso, devido às especificações dos dados fornecidos pela API, alterámos a relação "belongs to" entre "Topic" e "Journal" para uma nova relação entre "Topic" e "Article".
+Além disso, devido às especificações dos dados fornecidos pela API, alterámos a relação "Belongs_to" entre "Topic" e "Journal" para uma nova relação entre "Topic" e "Article".
 
 ## ER - Esquema Relacional/Relational Schema
 
@@ -69,15 +67,9 @@ Pela mesma razão mencionada na secção do DER, o Esquema Relacional (ER) tamb�
 
 ## SQL DML - Data Manipulation Language
 
-A DML é fundamental na manipulação de dados numa base de dados. 
+A seguir, apresentamos as operações permitidas na tabela "Author" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em `sql/02_sp_functions.sql` [[Aqui](sql/02_sp_functions.sql)].
 
-### Formulario exemplo/Example Form
-
-![Exemplo Screenshot!](screenshots/screenshot_1.jpg "AnImage")
-
-A seguir, apresentamos as operações permitidas na tabela "Author" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
-
-Para facilitar a visualização, criámos a pasta "screenshots/author" onde colocámos capturas de ecrã de cada uma dessas operações.
+Para facilitar a visualização, criámos a pasta `screenshots/author` [[Aqui](screenshots/author)] onde colocámos capturas de ecrã de cada uma dessas operações.
 
 ```sql
 -- Listar os detalhes de um autor
@@ -102,9 +94,9 @@ EXEC DeleteAuthor @AuthorID = ?;
 EXEC UpdateAuthor @AuthorID = ?, @Name = ?, @Url = ?, @ORCID = ?, @InstitutionName = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Institution" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
+A seguir, apresentamos as operações permitidas na tabela "Institution" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em `sql/02_sp_functions.sql` [[Aqui](sql/02_sp_functions.sql)].
 
-Para facilitar a visualização, criámos a pasta "screenshots/institution" onde colocámos capturas de ecrã de cada uma dessas operações.
+Para facilitar a visualização, criámos a pasta `screenshots/institution` [[Aqui](screenshots/institution)] onde colocámos capturas de ecrã de cada uma dessas operações.
 
 ```sql
 -- Listar os detalhes de uma instituição
@@ -129,9 +121,9 @@ EXEC DeleteInstitution @InstitutionID = ?;
 EXEC UpdateInstitution @InstitutionID = ?, @Name = ?, @Address = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Article" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
+A seguir, apresentamos as operações permitidas na tabela "Article" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em `sql/02_sp_functions.sql` [[Aqui](sql/02_sp_functions.sql)].
 
-Para facilitar a visualização, criámos a pasta "screenshots/article" onde colocámos capturas de ecrã de cada uma dessas operações.
+Para facilitar a visualização, criámos a pasta `screenshots/article` [[Aqui](screenshots/article)] onde colocámos capturas de ecrã de cada uma dessas operações.
 
 ```sql
 -- Listar os detalhes de um artigo
@@ -156,9 +148,9 @@ EXEC DeleteArticle @ArticleID = ?;
 EXEC UpdateArticle @ArticleID = ?, @Title = ?, @Abstract = ?, @DOI = ?, @StartPage = ?, @EndPage = ?, @JournalName = ?, @Volume = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Topic" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
+A seguir, apresentamos as operações permitidas na tabela "Topic" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em `sql/02_sp_functions.sql` [[Aqui](sql/02_sp_functions.sql)].
 
-Para facilitar a visualização, criámos a pasta "screenshots/topic" onde colocámos capturas de ecrã de cada uma dessas operações.
+Para facilitar a visualização, criámos a pasta `screenshots/topic` [[Aqui](screenshots/topic)] onde colocámos capturas de ecrã de cada uma dessas operações.
 
 ```sql
 -- Listar os detalhes de um tópico
@@ -183,9 +175,9 @@ EXEC DeleteTopic @TopicID = ?;
 EXEC UpdateTopic @TopicID = ?, @Name = ?, @Description = ?;
 ```
 
-A seguir, apresentamos as operações permitidas na tabela "Journal" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em sql/02_sp_functions.sql.
+A seguir, apresentamos as operações permitidas na tabela "Journal" da base de dados, acessíveis através dos formulários disponíveis no website desenvolvido. Os store procedures apresentados encontram-se em `sql/02_sp_functions.sql` [[Aqui](sql/02_sp_functions.sql)].
 
-Para facilitar a visualização, criámos a pasta "screenshots/journal" onde colocámos capturas de ecrã de cada uma dessas operações.
+Para facilitar a visualização, criámos a pasta `screenshots/journal` [[Aqui](screenshots/journal)] onde colocámos capturas de ecrã de cada uma dessas operações.
 
 ```sql
 -- Listar os detalhes de um jornal
@@ -214,21 +206,15 @@ EXEC UpdateJournal @JournalID = ?, @Name = ?, @PrintISSN = ?, @EletronicISSN = ?
 
 Para minimizar a duplicação de dados na nossa base de dados, adotámos uma série de passos na estruturação das tabelas.
 
-Primeiramente, na tabela "Article", evitámos a duplicação de dados não incluindo atributos como "PublicationDate" e "TopicName" diretamente. Em vez disso, criámos as tabelas "JournalVolume" e "Topic" para armazenar essas informações que são comuns a vários artigos. Este passo previne a necessidade de múltiplos updates e problemas de consistência entre cópias da mesma informação. Utilizámos uma chave estrangeira composta (JournalID, Volume) para manter a dependência correta com "JournalVolume". Para garantir uma associação eficiente entre tópicos e artigos, críamos a tabela "Belongs_to" com uma chave primária composta por (TopicID, ArticleID). É de salientar que a informação comum a múltiplos volumes de um mesmo jornal é mantida na tabela "Journal".
+Primeiramente, na tabela "Article", evitámos a duplicação de dados não incluindo atributos como "PublicationDate" e "TopicName" diretamente. Em vez disso, criámos as tabelas "JournalVolume" e "Topic" para armazenar essas informações que são comuns a vários artigos. Este passo previne a necessidade de múltiplos updates e problemas de consistência entre cópias da mesma informação. Utilizámos uma chave estrangeira composta (JournalID, Volume) para manter a dependência correta com "JournalVolume". Para garantir uma associação eficiente entre tópicos e artigos, críamos a tabela "Belongs_to" com uma chave primária composta por (TopicID, ArticleID). É de salientar que a informação comum a múltiplos volumes de um mesmo jornal é mantida na tabela "Journal". Ainda relativamente à tabela "Article" para evitar incluir a informação de todos os artigos que citaram uma publicação, criámos a tabela "Cited_by" com uma chave primária composta (CitedArticleID, CitingArticleID), mantendo a informação de citações organizada e evitando duplicações.
 
-Ainda relativamente à tabela "Article" para evitar incluir a informação de todos os artigos que citaram uma publicação, criámos a tabela "Cited_by" com uma chave primária composta (CitedArticleID, CitingArticleID), mantendo a informação de citações organizada e evitando duplicações.
+Além disso, para evitar que um artigo tivesse uma lista de todos os seus autores, o que violaria a 1NF, criámos a tabela "Wrote_by" com uma chave primária composta (ArticleID, AuthorID), assegurando que cada associação entre artigos e autores é única. Utilizámos a mesma abordagem para as relações "Has_keywords", "Favorite_Journal", "Interested_in", "Favorite_Article" e "Read_by", criando tabelas associativas que mantêm a integridade e unicidade das relações entre entidades. Na tabela "Author" optámos por não incluir o nome da instituição a que o autor pertence. A dependência com "Institution" é mantida através da chave estrangeira "InstitutionID". 
 
-Além disso, para evitar que um artigo tivesse uma lista de todos os seus autores, o que violaria a 1NF, criámos a tabela "Wrote_by" com uma chave primária composta (ArticleID, AuthorID), assegurando que cada associação entre artigos e autores é única.
+**Em relação à normalização**, garantimos que todas as tabelas tivessem valores atómicos e que não existissem relações dentro de relações (1NF). Eliminámos dependências parciais, assegurando que cada atributo não-chave fosse totalmente dependente da chave primária (2NF). Também eliminámos dependências transitivas de atributos não-chave, como exemplificado pela tabela "Institution", onde não há quaisquer atributos dependentes de "Author", o que se aplica igualmente às restantes tabelas (3NF).
 
-Utilizámos a mesma abordagem para as relações "Has_keywords", "Favorite_Journal", "Interested_in", "Favorite_Article" e "Read_by", criando tabelas associativas que mantêm a integridade e unicidade das relações entre entidades.
+A **BCNF** exige que todos os atributos sejam funcionalmente dependentes da chave da relação, de toda a chave e nada mais. Isto verifica-se nas nossas tabelas. Por exemplo, na tabela "Journal" onde temos a chave primária "JournalID" temos a seguinte dependência: JournalID -> Name, PrintISSN, EletronicISSN, Url, Publisher, ArticlesCount.
 
-Na tabela "Author" optámos por não incluir o nome da instituição a que o autor pertence. A dependência com "Institution" é mantida através da chave estrangeira "InstitutionID".
-
-Em relação à normalização, garantimos que todas as tabelas tivessem valores atómicos e que não existissem relações dentro de relações (1NF). Eliminámos dependências parciais, assegurando que cada atributo não-chave fosse totalmente dependente da chave primária (2NF). Também eliminámos dependências transitivas de atributos não-chave, como exemplificado pela tabela "Institution", onde não há quaisquer atributos dependentes de "Author", o que se aplica igualmente às restantes tabelas (3NF).
-
-A BCNF exige que todos os atributos sejam funcionalmente dependentes da chave da relação, de toda a chave e nada mais. Isto verifica-se nas nossas tabelas. Por exemplo, na tabela "Journal" onde temos a chave primária "JournalID" temos a seguinte dependência: JournalID -> Name, PrintISSN, EletronicISSN, Url, Publisher, ArticlesCount.
-
-Uma relação está na 4NF se estiver na BCNF e não existirem dependências multivalor. Analisando as tabelas, constatamos que não está nesta forma. Conseguiríamos alcançar esta forma normal reduzindo a redundância na nossa base de dados à custa da introdução de novas relações. Por exemplo, poderíamos separar [Article.Title, Article.StartPage] e [Article.Title, Article.EndPage].
+Uma relação está na 4NF se estiver na BCNF e não existirem dependências multivalor. Analisando as tabelas, constatamos que não está nesta forma. Conseguiríamos alcançar esta forma normal reduzindo a redundância na nossa base de dados à custa da introdução de novas relações. Por exemplo, poderíamos separar [Article.Title, Article.StartPage] e [Article.Title, Article.EndPage]. 
 
 A 5NF, trata de dependências de junção. Uma vez que não está na 4FN, pela definição da 5FN não se encontra nesta forma.
 
@@ -240,7 +226,7 @@ Por exemplo, nas tabelas "Author", "Institution", "Topic", "Journal" e "Article"
 
 Adicionalmente, nas tabelas "Author", "Journal" e "Topic", criámos índices na coluna "ArticlesCount" para otimizar as consultas que envolvem a contagem de artigos. De maneira similar, nas tabelas "Article" e "Institution", foram criados índices na coluna "AuthorsCount" para melhorar a eficiência das consultas relacionadas à contagem de autores.
 
-Esses índices são especialmente úteis quando os utilizadores do website ordenam resultados com base na quantidade de artigos ou autores, proporcionando uma experiência de procura mais rápida e eficiente, como verificámos no Execution Plan do SQL Server.
+Esses índices são especialmente úteis quando os utilizadores do website ordenam resultados com base na quantidade de artigos ou autores, proporcionando uma experiência de procura mais rápida e eficiente, como verificámos no Execution Plan do SQL Server apresentado no `slides.pdf` [[Aqui](slides.pdf)].
 
 
 ```sql
@@ -280,20 +266,17 @@ CREATE NONCLUSTERED INDEX IDX_Article_AuthorsCount
 ON Article (AuthorsCount);
 ```
 
-## SQL Programming: Stored Procedures, Triggers, UDF
+## SQL Programming: Stored Procedures, Triggers, UDF, Indexes
 
 [SQL SPs and Functions File](sql/02_sp_functions.sql "SQLFileQuestion")
 
 [SQL Triggers File](sql/03_triggers.sql "SQLFileQuestion")
 
-## Outras notas/Other notes
+[SQL Tables and Indexes File](sql/01_ddl.sql "SQLFileQuestion")
 
-### Dados iniciais da dabase de dados/Database init data
-
-[Indexes File](sql/01_ddl.sql "SQLFileQuestion")
 
 ### Apresentação
 
-[Slides](slides.pdf "Sildes")
+[Slides](slides.pdf "Slides")
 
-[Video](https://elearning.ua.pt/pluginfile.php/55992/mod_label/intro/VideoTrabalho2013.mp4)
+[Video](https://uapt33090-my.sharepoint.com/:v:/g/personal/pmap_ua_pt/Ea9V8s1UJJ1Eu1CkkE0fqqsBSCo6UPM4WTdhw9kTfZGvIg?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=dqXb9q)

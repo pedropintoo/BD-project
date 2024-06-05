@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcademiQuest</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/charts.css/dist/charts.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/charts.css/dist/charts.min.css">
+
+    <style>
+      #my-chart .column caption {
+        font-size: 1rem;
+        font-weight: bold;
+        line-height: 1.25rem;
+      }
+      #my-chart .column {
+        --aspect-ratio: 21 / 4;
+      }
+      #my-chart .column td {
+        font-size: 0.875rem;
+        font-weight: bold;
+        line-height: 1.25rem;
+        width: 100px;
+      }
+      #my-chart2 .bar {
+        --labels-size: 8rem;
+      }
+      #my-chart3 .column {
+        --labels-size: 2rem;
+      }
+      #my-chart3 .column td {
+        font-size: 0.875rem;
+        font-weight: bold;
+        line-height: 1.25rem;
+      }
+      #my-chart3 .column {
+        --aspect-ratio: 6.8 / 4;
+      }
+      .overflow-x-scroll {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .overflow-x-scroll li {
+        display: inline-block;
+        padding-right: 10px;
+      }
+
+    </style>
+
+  </head>
+<body>
+
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+              <a class="navbar-brand active" href=".">AcademiQuest</a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                  <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="/authors">Authors</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/institutions">Institutions</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/articles">Articles</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/topics">Topics</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/journals">Journals</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+        </nav>
+      <div>
+    </div>
+
+    <div id="my-chart2" class="shadow p-5 pt-2 mt-5 row">
+      <h2 class="my-5 h2">
+        Number of <code>Articles</code> by Most Productive <code>Authors</code> for top eight <code>Topics</code>.
+      </h2>
+      <div class="col-9">
+        <table class="charts-css bar show-heading datasets-spacing-8 show-labels col-6 overflow-x-auto w-100 overflow-y-none">
+          
+
+            {% for author, value in graph2_data.DataSets.values() %}
+            <tr >
+              <th scope="row"> {{ author }} </th>
+              <td class="py-4" style="--size: calc( {{ value }} / {{graph2_data.max}} )"> <span class="data me-3"> {{ value }} </span> </td>
+            </tr>
+            {% endfor %}  
+                    
+        </table>
+      </div>
+
+
+      <div class="col-3 h-50">
+        <ul class="charts-css legend legend-square">
+          {% for topic in graph2_data.DataSets.keys() %}
+            <li> {{ topic }} </li>
+          {% endfor %}
+        </ul>
+      </div>
+     </div>
+
+     <div id="my-chart3" class="shadow p-5 pt-2 mt-5 mb-0 row">
+      <h2 class="mt-5 h2">
+        Cumulative sum of <code>Citations</code> per <code>Topic</code>.
+      </h2>
+      <div class="col-10">
+        <table class="charts-css column datasets-spacing-4 w-100">
+          
+
+            {% for topic, value in graph3_data.DataSets.items() %}
+            <tr class="w-100">
+              <td class="py-2" style="--size: calc( {{ value[1] }} / {{graph3_data.max}} )"> <span class="data text-center overflow-y-auto h-100"> {{ topic }} <br> +{{ value[0] }} </span> </td>
+            </tr>
+            {% endfor %}  
+                    
+        </table>
+        </div>
+
+      <div class="col-2 h-50 ">
+        <ul class="charts-css legend legend-square overflow-x-scroll">
+          {% for topic in graph3_data.DataSets.keys() %}
+            <li class=" w-100"> {{ topic }} </li>
+          {% endfor %}
+        </ul>
+      </div>
+     </div>
+
+
+
+      <div id="my-chart" class="shadow p-5 pt-2 mt-5 mb-5">
+        <table class="charts-css column show-heading data-spacing-20 datasets-spacing-2 show-labels multiple col-6 overflow-x-auto w-100 overflow-y-none">
+          <h2 class="my-5 h2">
+            Top 3 <code>Topics</code> with more <code>Articles</code> in <code>Journals</code> for each year.
+          </h2>
+
+            {% for year, values in graph1_data.DataSets.items() %}
+            <tr>
+              <th scope="row"> {{ year }} </th>
+              {% for value in values %}  
+                {% if loop.index0 == 0 %}
+                <td style="--size: 1; --color: rgba(255 220 90 / 75%) ">
+                  <span class="data text-center"> {{ value[1] }} <br> {{ value[0] }} <br> 🥇 </span>
+                {% elif loop.index0 == 1 %}
+                <td style="--size: 0.70; --color: rgba(180 180 180 / 75%) ">
+                  <span class="data text-center"> {{ value[1] }} <br> {{ value[0] }} <br> 🥈 </span>
+                {% elif loop.index0 == 2 %}
+                <td style="--size: 0.4; --color: rgba(130 50 20 / 75%)  ">
+                  <span class="data text-center"> {{ value[1] }} <br> {{ value[0] }} <br> 🥉 </span>
+                {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}  
+                    
+        </table>
+       </div>
+
+
+
+    </div>
+
+</body>
+</html>

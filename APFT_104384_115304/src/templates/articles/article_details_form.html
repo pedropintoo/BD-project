@@ -1,0 +1,58 @@
+<div id="articlesDetails1" class="container">
+    <form class="articles-details-form"
+          hx-target="#content" hx-swap="innerHTML"
+          hx-post="/articles{% if article_id is defined %}/{{ article_id }}{% endif %}">
+        
+        <div class="mb-3">
+            <label for="Title" class="form-label">Title:</label>
+            <input type="text" class="form-control" id="Title" name="Title"
+                   value="{% if article is defined %}{{ article.Title }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="Abstract" class="form-label">Abstract:</label>
+            <input type="text" class="form-control" id="Abstract" name="Abstract"
+                   value="{% if article is defined %}{{ article.Abstract }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="DOI" class="form-label">DOI:</label>
+            <input type="text" class="form-control" id="DOI" name="DOI"
+                   value="{% if article is defined %}{{ article.DOI }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="JournalName" class="form-label">Journal Name:</label>
+            <input type="text" class="form-control" id="JournalName" name="JournalName"
+                   value="{% if article is defined %}{{ article.JournalName }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="Volume" class="form-label">Journal Volume:</label>
+            <input type="text" class="form-control" id="Volume" name="Volume"
+                   value="{% if article is defined %}{{ article.Volume }}{% endif %}">
+        </div>           
+
+        <div class="mb-3">
+            <label for="StartPage" class="form-label">Start Page:</label>
+            <input type="text" class="form-control" id="StartPage" name="StartPage"
+                   value="{% if article is defined %}{{ article.StartPage }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="EndPage" class="form-label">End Page:</label>
+            <input type="text" class="form-control" id="EndPage" name="EndPage"
+                   value="{% if article is defined %}{{ article.EndPage }}{% endif %}">
+        </div>           
+       
+        <div class="d-flex align-items-center">
+        <button type="submit" class="btn btn-primary me-2">Save</button>
+        {% if article_id is defined %}
+            <button type="button" class="btn btn-secondary me-2" hx-get="/articles{% if article_id is defined %}/{{ article_id }}{% endif %}">Cancel</button>
+        {% endif %}
+        {% if warning %}
+        <p class="text-danger fw-bold mb-0 ms-2">{{ warning }}</p>
+        {% endif %}
+       </div>
+    </form>
+</div>
