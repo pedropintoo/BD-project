@@ -22,7 +22,7 @@ Este relatório documenta o desenvolvimento do sistema, apresentando a estrutura
 ## ​Análise de Requisitos / Requirements
 
 ### Requisitos Funcionais
-1. O sistema permite ao utilizador pesquisar artigos por título, autor e tópicos. Deve ser possível fazer uma pesquisa por diferentes critérios.
+1. O sistema permite ao utilizador pesquisar artigos por título, autor e tópicos. É possível fazer uma pesquisa por diferentes critérios.
 2. O sistema apresenta em cada artigo a informação disponível sobre o mesmo, como por exemplo, título, autores, jornal, abstract, data de publicação e número de citações. 
 3. O sistema permite ao utilizador visualizar estatísticas sobre artigos científicos, jornais e tópicos.
 4. O sistema permite ao gestor da base de dados adicionar, remover e editar artigos, autores, instituições, jornais e tópicos mantendo a consistência da base de dados.
@@ -31,7 +31,6 @@ Este relatório documenta o desenvolvimento do sistema, apresentando a estrutura
 1. O sistema é intuitivo e fácil de usar, sendo centrado na pesquisa de artigos.
 2. O sistema é seguro, garantindo a confidencialidade dos dados do utilizador.
 3. O sistema é eficiente, garantindo uma resposta rápida às pesquisas dos utilizadores. 
-
 
 ## DER - Diagrama Entidade Relacionamento/Entity Relationship Diagram
 
@@ -49,7 +48,6 @@ Optámos por priorizar a eficiência nas consultas de procura e ordenação dos 
 
 Além disso, devido às especificações dos dados fornecidos pela API, alterámos a relação "belongs to" entre "Topic" e "Journal" para uma nova relação entre "Topic" e "Article".
 
-
 ## ER - Esquema Relacional/Relational Schema
 
 ### Versão final/Final Version
@@ -58,14 +56,12 @@ Além disso, devido às especificações dos dados fornecidos pela API, alterám
 
 ### APFE
 
-
 Pela mesma razão mencionada na secção do DER, o Esquema Relacional (ER) também sofreu ligeiras alterações:
 - Na entidade "Journal" o atributo "Frequency" foi substituído pelo atributo "Url"; 
 - Na entidade "Author" o atributo "Email" foi substituído pelo atributo "Url";
 - Nas entidades "Author", "Journal" e "Topic" adicionámos o atributo "ArticlesCount" (índice);
 - Nas entidades "Article" e "Institution", incluímos o atributo "AuthorsCount" (índice);
 - Alterámos a relação "belongs to" entre "Topic" e "Journal" para uma nova relação entre "Topic" e "Article".
-
 
 ## ​SQL DDL - Data Definition Language
 
