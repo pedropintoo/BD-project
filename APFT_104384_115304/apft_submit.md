@@ -202,6 +202,23 @@ EXEC DeleteJournal @JournalID = ?;
 EXEC UpdateJournal @JournalID = ?, @Name = ?, @PrintISSN = ?, @EletronicISSN = ?, @Url = ?, @Publisher = ?;
 ```
 
+Além disso, são fornecidas estatísticas ao utilizador, usando as seguintes operações presentes em `sql/02_sp_functions.sql` [[Aqui](sql/02_sp_functions.sql)].
+
+```sql
+--- Autores mais produtivos numa determinada área de investigação
+EXEC MostProductiveAuthorsByTopic;
+
+--- Tópicos mais populares por ano
+EXEC Top3TopicsPerYear;
+
+--- Soma acumulativa de citações por tópico
+EXEC RunningCitationsSumPerTopic;
+```
+
+![Autores mais produtivos](autoresMaisProdutivos.png "AnImage")
+![Topicos mais populares](topicosMaisPopulares.png "AnImage")
+![Soma acumulativa de citacoes](somaAcumulativaCitacoes.png "AnImage")
+
 ## Normalização/Normalization
 
 Para minimizar a duplicação de dados na nossa base de dados, adotámos uma série de passos na estruturação das tabelas.
