@@ -297,8 +297,3 @@ ON Article (AuthorsCount);
 [Slides](slides.pdf "Sildes")
 
 [Video](https://elearning.ua.pt/pluginfile.php/55992/mod_label/intro/VideoTrabalho2013.mp4)
-
-
-
-
- 
