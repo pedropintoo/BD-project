@@ -8,6 +8,8 @@ João Pinto (104383)
 
 # Base de Dados - Final Project
 
+In `src`:
+
 ## Structure
 
 The project is structured as follows:
